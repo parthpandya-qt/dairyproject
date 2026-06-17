@@ -365,7 +365,7 @@ export default function TransactionsAdminPage() {
 
         <div className="border-l-4 border-emerald-500 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between transition hover:shadow-md duration-200">
           <div>
-            <span className="text-[10px] font-extrabold text-slate-450 uppercase tracking-widest block">Estimated Revenue</span>
+            <span className="text-[10px] font-extrabold text-slate-450 uppercase tracking-widest block">Revenue</span>
             <span className="text-xl font-black text-emerald-600 mt-1 block">₹{dailyRevenueTotal.toFixed(2)}</span>
           </div>
           <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-50 text-emerald-600">

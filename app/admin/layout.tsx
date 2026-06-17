@@ -27,7 +27,7 @@ export default async function AdminLayout({
     <div className="flex min-h-screen bg-slate-50/50">
       {/* Sidebar Navigation */}
       <aside className="w-72 bg-[#0b0f19] text-white flex flex-col shadow-xl border-r border-slate-800/20 shrink-0">
-        <div className="p-6">
+        <div className="p-6 sticky top-0 z-50 backdrop-blur-md">
           <h2 className="text-xl font-black text-emerald-450 tracking-tight flex items-center gap-2 mb-10">
             <span className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,7 +37,7 @@ export default async function AdminLayout({
             Dairy Ledger Admin
           </h2>
 
-          <nav className="space-y-1.5">
+          <nav className="space-y-1.5 ">
             <Link
               href="/admin/customers"
               className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-850/80 transition duration-150 font-bold text-xs text-slate-355 hover:text-white tracking-wide uppercase"
