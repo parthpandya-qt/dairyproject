@@ -20,11 +20,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Check if the user exists in MongoDB
+    
     const user = await User.findOne({ email });
     if (!user) {
       return NextResponse.json(
-        { error: "Invalid credentials" }, // Generic message for security
+        { error: "Invalid credentials" }, 
         { status: 401 }
       );
     }
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 5. Generate standard JWT token with Admin's Mongo ID
+    
     const tokenData={
             id:user._id,
             userName:user.userName,
@@ -48,10 +48,10 @@ export async function POST(request: Request) {
     const token = jwt.sign(
       tokenData,
       process.env.JWT_SECRET!,
-      { expiresIn: "1d" } // Token expires in 24 hours
+      { expiresIn: "1d" }
     );
 
-    // 6. Formulate response and set the token in an HttpOnly cookie
+   
     const response = NextResponse.json(
       { success: true, message: "Authentication successful" },
       { status: 200 }

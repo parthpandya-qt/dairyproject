@@ -35,7 +35,7 @@ export const Customer = {
       ORDER BY c.createdAt DESC
     `, [userId]);
     if (!rows) return [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     return rows.map((row: any) => ({
       ...row,
       _id: row.id.toString(),

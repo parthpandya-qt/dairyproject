@@ -2,6 +2,7 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import DairyLogo from "@/components/DairyLogo";
 
 export default function SignupPage() {
   const [username, setUsername] = useState("");
@@ -50,14 +51,14 @@ export default function SignupPage() {
       <div className="backdrop-blur-xl bg-white/70 border border-white/40 shadow-2xl rounded-3xl p-8">
 
         {/* Header */}
-        <div className="text-center mb-8">
-          
-
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-            Dairy Farm
+        <div className="text-center mb-8 flex flex-col items-center">
+          <span className="p-3 bg-emerald-500/10 text-emerald-600 rounded-2xl inline-flex mb-3">
+            <DairyLogo className="w-8 h-8" strokeWidth={2.5} />
+          </span>
+          <h1 className="text-4xl font-black bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent tracking-tight">
+            DairyFlow Pro
           </h1>
-
-          <p className="text-gray-600 mt-2">
+          <p className="text-slate-500 font-medium text-sm mt-2">
             Create your administrative account
           </p>
         </div>

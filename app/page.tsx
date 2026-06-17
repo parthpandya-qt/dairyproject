@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import DairyLogo from "@/components/DairyLogo";
 
 export default function GlobalRootPage() {
   return (
@@ -10,9 +11,7 @@ export default function GlobalRootPage() {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2.5">
             <span className="p-1.5 bg-emerald-500/10 text-emerald-600 rounded-lg inline-flex">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-              </svg>
+              <DairyLogo className="w-5 h-5" strokeWidth={2.5} />
             </span>
             <span className="text-xl font-black tracking-tight text-slate-800">
               DairyFlow Pro
@@ -91,7 +90,7 @@ export default function GlobalRootPage() {
           <div className="p-6 bg-slate-50/60 rounded-2xl border border-slate-200/60 shadow-sm space-y-3">
             <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
               </svg>
             </div>
             <h3 className="font-extrabold text-slate-800 tracking-tight">Daily Entry Sheets</h3>
