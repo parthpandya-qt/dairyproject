@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, FormEvent } from "react";
+import Link from "next/link";
 import { ICustomer, IDairyItem } from "@/types";
 
 export default function CustomersAdminPage() {
@@ -373,8 +374,15 @@ export default function CustomersAdminPage() {
                       </td>
                       <td className="table-body-cell py-4 px-5 text-xs font-semibold text-slate-700">
                         <div className="space-y-1.5">
-                          <div className="text-[10px] text-blue-600 font-extrabold uppercase tracking-wide mb-0.5">
-                            {cust.itemName || "No item allocated"}
+                          <div className="text-[10px] text-blue-600 font-extrabold uppercase tracking-wide mb-0.5 flex items-center gap-1.5">
+                            <span className={cust.itemId && !items.some(i => i._id === cust.itemId?.toString()) ? 'text-slate-400 line-through' : ''}>
+                              {cust.itemName || "No item allocated"}
+                            </span>
+                            {cust.itemId && !items.some(i => i._id === cust.itemId?.toString()) && (
+                              <span className="px-1.5 py-0.5 bg-slate-100 text-slate-400 border border-slate-200 rounded text-[9px] font-bold normal-case">
+                                Deleted
+                              </span>
+                            )}
                           </div>
                           <div className="flex items-center gap-1.5 font-bold text-slate-700">
                             <svg className="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -413,6 +421,15 @@ export default function CustomersAdminPage() {
                             </svg>
                             Delete
                           </button>
+                          <Link 
+                            href={`/admin/customers/${cust._id}/ledger`}
+                            className="text-blue-650 hover:text-blue-750 bg-blue-50/50 hover:bg-blue-50/80 border border-blue-100 font-bold text-xs px-2.5 py-1.5 rounded-lg flex items-center transition cursor-pointer"
+                          >
+                            <svg className="w-3.5 h-3.5 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Ledger
+                          </Link>
                         </div>
                       </td>
                     </tr>
@@ -515,6 +532,11 @@ export default function CustomersAdminPage() {
                     required
                   >
                     <option value="" disabled>Select Product</option>
+                    {editItemId && !items.some((item) => item._id === editItemId) && (
+                      <option value={editItemId} disabled>
+                        {customers.find((c) => c._id === editId)?.itemName || "Current Item"} (Deleted)
+                      </option>
+                    )}
                     {items.map((item) => (
                       <option key={item._id} value={item._id}>
                         {item.name} ({item.unit})

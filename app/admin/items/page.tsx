@@ -196,12 +196,12 @@ export default function DairyItemsAdminPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
               </svg>
             </span>
-            Add New Item
+            Add New Product to Catalog
           </h2>
           
           <form onSubmit={handleAddItem} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Product Title</label>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Product Name</label>
               <input 
                 type="text" 
                 value={name} 
@@ -269,9 +269,9 @@ export default function DairyItemsAdminPage() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50/30">
-                    <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Item Designation Name</th>
-                    <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Pricing Unit Metrics</th>
-                    <th className="table-header-cell border-b border-slate-100 py-3.5 px-5 text-right">Operational Actions</th>
+                    <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Product Name</th>
+                    <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Pricing </th>
+                    <th className="table-header-cell border-b border-slate-100 py-3.5 px-5 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-150/40">

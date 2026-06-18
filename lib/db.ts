@@ -104,18 +104,7 @@ async function initializeDatabase(connectionPool: mysql.Pool) {
       ) ENGINE=InnoDB;
     `);
 
-    // 4b. Create default_dairy_items table
-    await connectionPool.execute(`
-      CREATE TABLE IF NOT EXISTS default_dairy_items (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        pricePerUnit DECIMAL(10,2) NOT NULL,
-        unit VARCHAR(50) NOT NULL DEFAULT 'Liter',
-        deletedAt TIMESTAMP NULL DEFAULT NULL,
-        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-      ) ENGINE=InnoDB;
-    `);
+   
 
     await connectionPool.execute(`
       CREATE TABLE IF NOT EXISTS transactions (

@@ -24,7 +24,8 @@ export const Customer = {
     const rows = await query(`
       SELECT c.*, 
              COALESCE(di.name, ai.name) AS itemName, 
-             COALESCE(di.unit, ai.unit) AS itemUnit
+             COALESCE(di.unit, ai.unit) AS itemUnit,
+             COALESCE(di.pricePerUnit, ai.pricePerUnit) AS itemPrice
       FROM customers c
       LEFT JOIN default_dairy_items di ON c.itemId = di.id AND c.isDefaultItem = 1
       LEFT JOIN dairy_items ai ON c.itemId = ai.id AND (c.isDefaultItem IS NULL OR c.isDefaultItem = 0)
@@ -42,6 +43,29 @@ export const Customer = {
       openingBalance: Number(row.openingBalance || 0)
     }));
   },
+
+  async findById(id: string, userId: number) {
+    const rows = await query(`
+      SELECT c.*, 
+             COALESCE(di.name, ai.name) AS itemName, 
+             COALESCE(di.unit, ai.unit) AS itemUnit,
+             COALESCE(di.pricePerUnit, ai.pricePerUnit) AS itemPrice
+      FROM customers c
+      LEFT JOIN default_dairy_items di ON c.itemId = di.id AND c.isDefaultItem = 1
+      LEFT JOIN dairy_items ai ON c.itemId = ai.id AND (c.isDefaultItem IS NULL OR c.isDefaultItem = 0)
+      WHERE c.id = ? AND c.userId = ? AND c.deletedAt IS NULL
+    `, [id, userId]);
+    if (!rows || rows.length === 0) return null;
+    return {
+      ...rows[0],
+      _id: rows[0].id.toString(),
+      morningQuantity: Number(rows[0].morningQuantity),
+      eveningQuantity: Number(rows[0].eveningQuantity),
+      itemId: rows[0].itemId ? `${rows[0].isDefaultItem ? 'd-' : 'a-'}${rows[0].itemId}` : null,
+      openingBalance: Number(rows[0].openingBalance || 0)
+    };
+  },
+
 
   async create(data: { name: string; phone: string; address: string; morningQuantity?: number; eveningQuantity?: number; itemId?: string | number | null; openingBalance?: number }, userId: number) {
     const morningQuantity = data.morningQuantity !== undefined ? data.morningQuantity : 0.0;
@@ -99,7 +123,8 @@ export const Customer = {
     const rows = await query(`
       SELECT c.*, 
              COALESCE(di.name, ai.name) AS itemName, 
-             COALESCE(di.unit, ai.unit) AS itemUnit
+             COALESCE(di.unit, ai.unit) AS itemUnit,
+             COALESCE(di.pricePerUnit, ai.pricePerUnit) AS itemPrice
       FROM customers c
       LEFT JOIN default_dairy_items di ON c.itemId = di.id AND c.isDefaultItem = 1
       LEFT JOIN dairy_items ai ON c.itemId = ai.id AND (c.isDefaultItem IS NULL OR c.isDefaultItem = 0)

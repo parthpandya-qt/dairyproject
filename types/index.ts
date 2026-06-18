@@ -16,6 +16,7 @@ export interface ICustomer {
   itemId?: string | number | null;
   itemName?: string;
   itemUnit?: string;
+  itemPrice?: number;
   openingBalance: number;
   isDefaultItem?: number | boolean;
   createdAt?: Date;
@@ -38,6 +39,23 @@ export interface ITransaction {
   date: string;
   morningQuantity: number;
   eveningQuantity: number;
+  totalPrice: number;
+  customerName?: string;
+  itemName?: string;
+  itemPrice?: number;
+  itemUnit?: string;
+  isDefaultItem?: number | boolean;
+  pricePerUnit?: number;
+  createdAt?: Date;
+}
+
+export interface IExtraItem {
+  _id?: string;
+  userId: number;
+  customerId: number;
+  itemId: string | number;
+  date: string;
+  quantity: number;
   totalPrice: number;
   customerName?: string;
   itemName?: string;

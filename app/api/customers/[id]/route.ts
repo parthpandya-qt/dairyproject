@@ -7,6 +7,31 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
+export async function GET(request: Request, { params }: RouteParams) {
+  try {
+    const userId = await getCurrentUserId();
+    await dbConnect();
+    
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
+
+    if (!id) {
+      return NextResponse.json({ error: "Customer ID is required" }, { status: 400 });
+    }
+
+    const customer = await Customer.findById(id, userId);
+
+    if (!customer) {
+      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(customer, { status: 200 });
+  } catch (error) {
+    console.error("Customer GET Error:", error);
+    return NextResponse.json({ error: "Failed to fetch customer profile" }, { status: 500 });
+  }
+}
+
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
     const userId = await getCurrentUserId();
