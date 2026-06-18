@@ -13,27 +13,20 @@ export interface ICustomer {
   morningQuantity: number;
   eveningQuantity: number;
   unit?: string;
-  itemId?: number | null;
+  itemId?: string | number | null;
   itemName?: string;
   itemUnit?: string;
   openingBalance: number;
+  isDefaultItem?: number | boolean;
   createdAt?: Date;
-}
-
-export interface IDailyLog {
-  _id?: string;
-  customerId: string;
-  date: Date;
-  quantity: number; 
-  morningQuantity: number; // Amount in Liters (e.g., 1.5, 2.0, 0.5)
-  eveningQuantity: number; // Amount in Liters (e.g., 1.5, 2.0, 0.5)
 }
 
 export interface IDairyItem {
   _id: string;
   name: string;
   pricePerUnit: number;
-  unit: 'Liter' | 'Kg' | 'Packet';
+  unit: 'Liter' | 'Kg' | 'Packet' | string;
+  isDefaultItem?: number | boolean;
   createdAt?: Date;
 }
 
@@ -41,7 +34,7 @@ export interface ITransaction {
   _id?: string;
   userId: number;
   customerId: number;
-  itemId: number;
+  itemId: string | number;
   date: string;
   morningQuantity: number;
   eveningQuantity: number;
@@ -50,5 +43,7 @@ export interface ITransaction {
   itemName?: string;
   itemPrice?: number;
   itemUnit?: string;
+  isDefaultItem?: number | boolean;
+  pricePerUnit?: number;
   createdAt?: Date;
 }

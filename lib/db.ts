@@ -2,11 +2,15 @@ import mysql from 'mysql2/promise';
 
 let pool: mysql.Pool | null = null;
 let initialized = false;
+let initializingPromise: Promise<void> | null = null;
 
 export async function dbConnect() {
   if (pool) {
     if (!initialized) {
-      await initializeDatabase(pool);
+      if (!initializingPromise) {
+        initializingPromise = initializeDatabase(pool);
+      }
+      await initializingPromise;
     }
     return pool;
   }
@@ -37,7 +41,10 @@ export async function dbConnect() {
   }
 
   if (!initialized) {
-    await initializeDatabase(pool);
+    if (!initializingPromise) {
+      initializingPromise = initializeDatabase(pool);
+    }
+    await initializingPromise;
   }
 
   return pool;
@@ -83,18 +90,6 @@ async function initializeDatabase(connectionPool: mysql.Pool) {
       ) ENGINE=InnoDB;
     `);
 
-    // 3. Create daily_logs table
-    await connectionPool.execute(`
-      CREATE TABLE IF NOT EXISTS daily_logs (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        customerId INT NOT NULL,
-        date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        morningQuantity DECIMAL(5,2) DEFAULT 0.00,
-        eveningQuantity DECIMAL(5,2) DEFAULT 0.00,
-        FOREIGN KEY (customerId) REFERENCES customers(id) ON DELETE CASCADE
-      ) ENGINE=InnoDB;
-    `);
-
     // 4. Create dairy_items table
     await connectionPool.execute(`
       CREATE TABLE IF NOT EXISTS dairy_items (
@@ -109,7 +104,19 @@ async function initializeDatabase(connectionPool: mysql.Pool) {
       ) ENGINE=InnoDB;
     `);
 
-   
+    // 4b. Create default_dairy_items table
+    await connectionPool.execute(`
+      CREATE TABLE IF NOT EXISTS default_dairy_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        pricePerUnit DECIMAL(10,2) NOT NULL,
+        unit VARCHAR(50) NOT NULL DEFAULT 'Liter',
+        deletedAt TIMESTAMP NULL DEFAULT NULL,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB;
+    `);
+
     await connectionPool.execute(`
       CREATE TABLE IF NOT EXISTS transactions (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -120,10 +127,10 @@ async function initializeDatabase(connectionPool: mysql.Pool) {
         morningQuantity DECIMAL(5,2) DEFAULT 0.00,
         eveningQuantity DECIMAL(5,2) DEFAULT 0.00,
         totalPrice DECIMAL(10,2) DEFAULT 0.00,
+        pricePerUnit DECIMAL(10,2) DEFAULT 0.00,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (customerId) REFERENCES customers(id) ON DELETE CASCADE,
-        FOREIGN KEY (itemId) REFERENCES dairy_items(id) ON DELETE CASCADE
+        FOREIGN KEY (customerId) REFERENCES customers(id) ON DELETE CASCADE
       ) ENGINE=InnoDB;
     `);
 
@@ -141,6 +148,18 @@ async function initializeDatabase(connectionPool: mysql.Pool) {
       await connectionPool.execute("ALTER TABLE customers ADD COLUMN userId INT");
     } catch {}
     try {
+      await connectionPool.execute("ALTER TABLE customers ADD COLUMN isDefaultItem TINYINT DEFAULT 0");
+    } catch {}
+    try {
+      await connectionPool.execute("ALTER TABLE transactions ADD COLUMN isDefaultItem TINYINT DEFAULT 0");
+    } catch {}
+    try {
+      await connectionPool.execute("ALTER TABLE transactions ADD COLUMN pricePerUnit DECIMAL(10,2) DEFAULT 0.00");
+    } catch {}
+    try {
+      await connectionPool.execute("ALTER TABLE transactions DROP FOREIGN KEY transactions_ibfk_2");
+    } catch {}
+    try {
       await connectionPool.execute("ALTER TABLE dairy_items ADD COLUMN deletedAt TIMESTAMP NULL DEFAULT NULL");
     } catch {}
     try {
@@ -152,6 +171,45 @@ async function initializeDatabase(connectionPool: mysql.Pool) {
     try {
       await connectionPool.execute("ALTER TABLE dairy_items DROP INDEX unique_user_item_name");
     } catch {}
+
+    // Backfill historical unit prices for pre-existing transactions
+    try {
+      await connectionPool.execute(`
+        UPDATE transactions t
+        LEFT JOIN default_dairy_items di ON t.itemId = di.id AND t.isDefaultItem = 1
+        LEFT JOIN dairy_items ai ON t.itemId = ai.id AND (t.isDefaultItem IS NULL OR t.isDefaultItem = 0)
+        SET t.pricePerUnit = COALESCE(di.pricePerUnit, ai.pricePerUnit, 0.00)
+        WHERE t.pricePerUnit = 0.00 OR t.pricePerUnit IS NULL
+      `);
+    } catch (migError) {
+      console.error("Backfilling historical unit prices for transactions failed:", migError);
+    }
+
+    // Run data migration from dairy_items (userId IS NULL) to default_dairy_items
+    try {
+      const [nullUserItems] = await connectionPool.execute("SELECT * FROM dairy_items WHERE userId IS NULL");
+      if (Array.isArray(nullUserItems) && nullUserItems.length > 0) {
+        for (const item of nullUserItems as any[]) {
+          // Check if already in default_dairy_items
+          const [exists] = await connectionPool.execute("SELECT id FROM default_dairy_items WHERE id = ?", [item.id]);
+          if (Array.isArray(exists) && exists.length === 0) {
+            await connectionPool.execute(
+              "INSERT INTO default_dairy_items (id, name, pricePerUnit, unit, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)",
+              [item.id, item.name, item.pricePerUnit, item.unit, item.createdAt, item.updatedAt]
+            );
+          }
+          // Set isDefaultItem = 1 for any customer / transaction pointing to this item
+          await connectionPool.execute("UPDATE customers SET isDefaultItem = 1 WHERE itemId = ?", [item.id]);
+          await connectionPool.execute("UPDATE transactions SET isDefaultItem = 1 WHERE itemId = ?", [item.id]);
+        }
+        // Delete null user items from dairy_items
+        await connectionPool.execute("DELETE FROM dairy_items WHERE userId IS NULL");
+      }
+    } catch (migError) {
+      console.error("Migration of default items failed:", migError);
+    }
+
+
 
     initialized = true;
     console.log("MySQL Database tables verified/created successfully.");

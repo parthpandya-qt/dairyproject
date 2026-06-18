@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   try {
     const userId = await getCurrentUserId();
     await dbConnect();
-    const { customerId, itemId, date, morningQuantity, eveningQuantity, totalPrice } = await request.json();
+    const { customerId, itemId, date, morningQuantity, eveningQuantity, totalPrice, pricePerUnit } = await request.json();
 
     if (!customerId || !itemId || !date) {
       return NextResponse.json(
@@ -30,11 +30,12 @@ export async function POST(request: Request) {
 
     const newTransaction = await Transaction.create({
       customerId: Number(customerId),
-      itemId: Number(itemId),
+      itemId,
       date,
       morningQuantity: Number(morningQuantity || 0),
       eveningQuantity: Number(eveningQuantity || 0),
-      totalPrice: Number(totalPrice || 0)
+      totalPrice: Number(totalPrice || 0),
+      pricePerUnit: pricePerUnit !== undefined && pricePerUnit !== null ? Number(pricePerUnit) : undefined
     }, userId);
 
     return NextResponse.json(

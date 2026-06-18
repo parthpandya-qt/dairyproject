@@ -277,7 +277,14 @@ export default function DairyItemsAdminPage() {
                 <tbody className="divide-y divide-slate-150/40">
                   {items.map((item) => (
                     <tr key={item._id as string} className="hover:bg-slate-50/30 transition duration-150">
-                      <td className="table-body-cell py-4 px-5 font-bold text-slate-900">{item.name}</td>
+                      <td className="table-body-cell py-4 px-5 font-bold text-slate-900 flex items-center gap-2">
+                        {item.name}
+                        {item.isDefaultItem ? (
+                          <span className="px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200/60 rounded-full text-[9px] font-bold inline-flex">
+                            Default
+                          </span>
+                        ) : null}
+                      </td>
                       <td className="table-body-cell py-4 px-5 text-xs text-slate-700 font-bold">
                         ₹{item.pricePerUnit} <span className="text-[10px] text-slate-400 font-medium">/ per {item.unit}</span>
                       </td>

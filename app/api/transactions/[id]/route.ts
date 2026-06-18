@@ -18,7 +18,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Transaction ID is required" }, { status: 400 });
     }
 
-    const { customerId, itemId, date, morningQuantity, eveningQuantity, totalPrice } = await request.json();
+    const { customerId, itemId, date, morningQuantity, eveningQuantity, totalPrice, pricePerUnit } = await request.json();
 
     if (!customerId || !itemId || !date) {
       return NextResponse.json(
@@ -29,11 +29,12 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     const updated = await Transaction.findByIdAndUpdate(id, {
       customerId: Number(customerId),
-      itemId: Number(itemId),
+      itemId,
       date,
       morningQuantity: Number(morningQuantity || 0),
       eveningQuantity: Number(eveningQuantity || 0),
-      totalPrice: Number(totalPrice || 0)
+      totalPrice: Number(totalPrice || 0),
+      pricePerUnit: pricePerUnit !== undefined && pricePerUnit !== null ? Number(pricePerUnit) : undefined
     }, userId);
 
     if (!updated) {

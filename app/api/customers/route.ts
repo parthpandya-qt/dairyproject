@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       address: address.trim(),
       morningQuantity: morningQuantity !== undefined ? Number(morningQuantity) : 0,
       eveningQuantity: eveningQuantity !== undefined ? Number(eveningQuantity) : 0,
-      itemId: itemId !== undefined && itemId !== null ? Number(itemId) : null,
+      itemId: itemId !== undefined && itemId !== null ? itemId : null,
       openingBalance: openingBalance !== undefined ? Number(openingBalance) : 0,
     }, userId);
 

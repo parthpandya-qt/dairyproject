@@ -73,7 +73,7 @@ export default function CustomersAdminPage() {
           address: address.trim(),
           morningQuantity: Number(morningQuantity),
           eveningQuantity: Number(eveningQuantity),
-          itemId: itemId ? Number(itemId) : null,
+          itemId: itemId || null,
           openingBalance: Number(openingBalance),
         }),
       });
@@ -130,7 +130,7 @@ export default function CustomersAdminPage() {
           address: editAddress.trim(),
           morningQuantity: Number(editMorningQuantity),
           eveningQuantity: Number(editEveningQuantity),
-          itemId: editItemId ? Number(editItemId) : null,
+          itemId: editItemId || null,
           openingBalance: Number(editOpeningBalance),
         }),
       });
