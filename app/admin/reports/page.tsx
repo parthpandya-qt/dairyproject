@@ -854,7 +854,11 @@ export default function ReportsPage() {
       {/* Global CSS for Printing */}
       <style>{`
         @media print {
+          @page {
+            margin: 0 !important;
+          }
           body {
+            margin: 1.5cm !important;
             background: white !important;
             color: black !important;
           }
