@@ -839,12 +839,6 @@ export default function ReportsPage() {
                     </tbody>
                   </table>
                 </div>
-
-                {/* Signature Block */}
-                <div className="pt-8 text-center">
-                  <div className="border-t border-slate-200 w-2/3 mx-auto pb-1"></div>
-                  <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider">Authorized Signatory</p>
-                </div>
               </div>
             </div>
           </div>
