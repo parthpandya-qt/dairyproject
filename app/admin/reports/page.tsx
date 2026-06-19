@@ -277,6 +277,28 @@ export default function ReportsPage() {
     return total;
   };
 
+  const getSelectedMonthDefaultTotal = (cust: ICustomer): number => {
+    const custTx = transactions.filter((tx) => tx.customerId.toString() === cust._id);
+    let total = 0;
+    custTx.forEach((tx) => {
+      if (selectedMonthFilter === "all" || tx.date.substring(0, 7) === selectedMonthFilter) {
+        total += tx.totalPrice;
+      }
+    });
+    return total;
+  };
+
+  const getSelectedMonthExtraTotal = (cust: ICustomer): number => {
+    const custEi = extraItems.filter((ei) => ei.customerId.toString() === cust._id);
+    let total = 0;
+    custEi.forEach((ei) => {
+      if (selectedMonthFilter === "all" || ei.date.substring(0, 7) === selectedMonthFilter) {
+        total += ei.totalPrice;
+      }
+    });
+    return total;
+  };
+
   const getSelectedMonthName = (monthKey: string): string => {
     if (monthKey === "all") return "All Months";
     const [year, month] = monthKey.split("-");
@@ -468,7 +490,7 @@ export default function ReportsPage() {
                         if (totalQty === 0) return null;
 
                         return (
-                          <div className="p-4 bg-slate-50/60 border border-slate-200/80 rounded-2xl grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-bold text-slate-700 mt-4 shadow-sm">
+                          <div className="p-4 bg-slate-50/60 border border-slate-200/80 rounded-2xl grid grid-cols-2 sm:grid-cols-5 gap-4 text-xs font-bold text-slate-700 mt-4 shadow-sm">
                             <div>
                               <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Morning Qty</span>
                               <span className="text-sm font-extrabold text-slate-900">{totalMorning} {activeCustomer.itemUnit || 'L'}</span>
@@ -487,6 +509,12 @@ export default function ReportsPage() {
                                 ({totalMorning} + {totalEvening}) × ₹{rate.toFixed(2)} = ₹{defaultTotalBill.toFixed(2)}
                               </span>
                             </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Extra Items Bill</span>
+                              <span className="text-sm font-extrabold text-amber-600">
+                                ₹{group.rows.reduce((sum, r) => sum + r.extraItems.reduce((s, item) => s + (item.price || 0), 0), 0).toFixed(2)}
+                              </span>
+                            </div>
                           </div>
                         );
                       })()}
@@ -496,24 +524,31 @@ export default function ReportsPage() {
               </div>
 
               {/* Financial Balance Summary Banner */}
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/60 mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Monthly Deliveries Spent</span>
-                  <span className="text-base font-extrabold text-slate-800">
-                    ₹{getSelectedMonthTotal(activeCustomer).toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Opening Balance</span>
-                  <span className="text-base font-extrabold text-slate-800">
-                    ₹{Number(activeCustomer.openingBalance || 0).toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex flex-col border-t md:border-t-0 md:border-l border-slate-200 pt-3 md:pt-0 md:pl-6 bg-blue-50/50 p-2.5 rounded-xl">
-                  <span className="text-[10px] text-blue-500 font-extrabold uppercase tracking-wider">Total Monthly Spent (Inc. Opening)</span>
-                  <span className="text-lg font-black text-blue-600">
-                    ₹{(getSelectedMonthTotal(activeCustomer) + Number(activeCustomer.openingBalance || 0)).toFixed(2)}
-                  </span>
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200/80 mt-4 max-w-md ml-auto">
+                <h4 className="font-extrabold text-[10px] text-slate-400 uppercase tracking-wider mb-4">Invoice Summary Breakdown</h4>
+                <div className="space-y-2 text-xs font-bold text-slate-700">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Total Default Bill:</span>
+                    <span className="text-slate-900">₹{getSelectedMonthDefaultTotal(activeCustomer).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Total Extra Item Bill:</span>
+                    <span className="text-slate-900">₹{getSelectedMonthExtraTotal(activeCustomer).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pb-2 border-b border-slate-200">
+                    <span className="text-slate-500">Opening Balance:</span>
+                    <span className="text-slate-900">₹{Number(activeCustomer.openingBalance || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 text-sm font-black bg-blue-50/50 p-2.5 rounded-xl text-blue-600">
+                    <span>Total Monthly Spent:</span>
+                    <span>
+                      ₹{(
+                        getSelectedMonthDefaultTotal(activeCustomer) +
+                        getSelectedMonthExtraTotal(activeCustomer) +
+                        Number(activeCustomer.openingBalance || 0)
+                      ).toFixed(2)}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -758,7 +793,7 @@ export default function ReportsPage() {
                           if (totalQty === 0) return null;
 
                           return (
-                            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-4 text-[10px] font-bold text-slate-700 mt-3 print-summary-card">
+                            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-2 sm:grid-cols-5 gap-4 text-[10px] font-bold text-slate-700 mt-3 print-summary-card">
                               <div>
                                 <span className="text-[8px] text-slate-400 uppercase tracking-wider block">Total Morning Qty</span>
                                 <span className="text-slate-900 font-extrabold">{totalMorning} {selectedCustomerForReceipt.itemUnit || 'L'}</span>
@@ -773,8 +808,14 @@ export default function ReportsPage() {
                               </div>
                               <div>
                                 <span className="text-[8px] text-slate-400 uppercase tracking-wider block">Total Default Bill</span>
-                                <span className="text-blue-600 font-black">
+                                <span className="text-blue-600 font-black font-mono">
                                   ({totalMorning} + {totalEvening}) × ₹{rate.toFixed(2)} = ₹{defaultTotalBill.toFixed(2)}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-[8px] text-slate-400 uppercase tracking-wider block">Total Extra Items Bill</span>
+                                <span className="text-amber-600 font-black font-mono">
+                                  ₹{group.rows.reduce((sum, r) => sum + r.extraItems.reduce((s, item) => s + (item.price || 0), 0), 0).toFixed(2)}
                                 </span>
                               </div>
                             </div>
