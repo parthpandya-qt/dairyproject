@@ -524,7 +524,7 @@ function LedgerContent() {
                         <div>
                           <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Bill</span>
                           <span className="text-blue-600 font-extrabold">
-                            ({totalMorning} + {totalEvening}) × ₹{rate.toFixed(2)} = ₹{defaultTotalBill.toFixed(2)}
+                            ₹{defaultTotalBill.toFixed(2)}
                           </span>
                         </div>
                       </div>

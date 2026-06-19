@@ -506,7 +506,7 @@ export default function ReportsPage() {
                             <div>
                               <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Default Bill</span>
                               <span className="text-sm font-extrabold text-blue-600">
-                                ({totalMorning} + {totalEvening}) × ₹{rate.toFixed(2)} = ₹{defaultTotalBill.toFixed(2)}
+                                ₹{defaultTotalBill.toFixed(2)}
                               </span>
                             </div>
                             <div>
@@ -809,7 +809,7 @@ export default function ReportsPage() {
                               <div>
                                 <span className="text-[8px] text-slate-400 uppercase tracking-wider block">Total Default Bill</span>
                                 <span className="text-blue-600 font-black font-mono">
-                                  ({totalMorning} + {totalEvening}) × ₹{rate.toFixed(2)} = ₹{defaultTotalBill.toFixed(2)}
+                                  ₹{defaultTotalBill.toFixed(2)}
                                 </span>
                               </div>
                               <div>
