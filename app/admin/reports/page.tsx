@@ -661,58 +661,43 @@ export default function ReportsPage() {
             <div className="p-6 overflow-y-auto bg-slate-50/50 flex-1">
               <div id="printable-receipt-area" className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm text-slate-800 font-sans w-full mx-auto">
                 {/* Receipt Header */}
-                <div className="text-center pb-6 border-b border-dashed border-slate-200">
-                  <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Dairy Ledger Statement</h2>
-                  <p className="text-[10px] text-slate-400 font-extrabold uppercase mt-1">Dairy Flow Pro • Receipt Copy</p>
-                  <p className="text-xs text-slate-500 mt-2 font-semibold">
-                    Billing Period: {getSelectedMonthName(selectedMonthFilter)}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-0.5 font-semibold">
-                    Date: {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
-                  </p>
-                  <p className="text-[10px] text-slate-400 font-mono mt-0.5">
-                    Receipt ID: DL-{new Date().getFullYear()}{String(new Date().getMonth() + 1).padStart(2, "0")}-{selectedCustomerForReceipt._id}
-                  </p>
+                <div className="text-center pb-4 border-b border-dashed border-slate-200">
+                  <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">Dairy Ledger Statement</h2>
+                  <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider mt-0.5">Dairy Flow Pro • Invoice</p>
+                  <div className="mt-2 text-[10px] text-slate-500 font-semibold flex justify-center gap-6 flex-wrap">
+                    <span>Billing Period: {getSelectedMonthName(selectedMonthFilter)}</span>
+                    <span>Date: {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span>
+                    <span>Receipt ID: DL-{new Date().getFullYear()}{String(new Date().getMonth() + 1).padStart(2, "0")}-{selectedCustomerForReceipt._id.substring(0, 6)}</span>
+                  </div>
                 </div>
 
-                {/* Customer Details */}
-                <div className="py-4 border-b border-dashed border-slate-200 text-xs">
-                  <h4 className="font-extrabold text-slate-400 uppercase tracking-wider text-[9px] mb-2">Customer Details</h4>
-                  <table className="w-full text-left">
-                    <tbody>
-                      <tr>
-                        <td className="py-0.5 text-slate-400 pr-4 font-semibold">Name:</td>
-                        <td className="py-0.5 text-slate-900 font-bold text-right">{selectedCustomerForReceipt.name}</td>
-                      </tr>
-                      <tr>
-                        <td className="py-0.5 text-slate-400 pr-4 font-semibold">Phone:</td>
-                        <td className="py-0.5 text-slate-900 font-bold text-right">{selectedCustomerForReceipt.phone}</td>
-                      </tr>
-                      <tr>
-                        <td className="py-0.5 text-slate-400 pr-4 font-semibold">Address:</td>
-                        <td className="py-0.5 text-slate-900 font-bold text-right">{selectedCustomerForReceipt.address}</td>
-                      </tr>
-                      <tr>
-                        <td className="py-0.5 text-slate-400 pr-4 font-semibold">Opening Balance:</td>
-                        <td className="py-0.5 text-slate-900 font-bold text-right">₹{Number(selectedCustomerForReceipt.openingBalance || 0).toFixed(2)}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                {/* Customer Details Inline Layout */}
+                <div className="py-3 border-b border-dashed border-slate-200 text-xs grid grid-cols-2 md:grid-cols-4 gap-4 text-slate-700">
+                  <div>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Customer Name</span>
+                    <span className="text-xs font-bold text-slate-900">{selectedCustomerForReceipt.name}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Phone Number</span>
+                    <span className="text-xs font-bold text-slate-900">{selectedCustomerForReceipt.phone}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Delivery Address</span>
+                    <span className="text-xs font-bold text-slate-900">{selectedCustomerForReceipt.address}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Opening Balance</span>
+                    <span className="text-xs font-bold text-slate-900">₹{Number(selectedCustomerForReceipt.openingBalance || 0).toFixed(2)}</span>
+                  </div>
                 </div>
 
                 {/* Billing Summary Table */}
-                <div className="py-6 text-xs">
-                  <h4 className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px] mb-4">Date-wise Monthly Delivery Ledger</h4>
+                <div className="py-4 text-xs">
                   {getDetailedCustomerLedger(selectedCustomerForReceipt).length === 0 ? (
                     <p className="text-center text-slate-400 italic py-6">No delivery history found for this customer.</p>
                   ) : (
                     getDetailedCustomerLedger(selectedCustomerForReceipt).map((group, gIdx) => (
-                      <div key={gIdx} className="mb-8 last:mb-0">
-                        {/* Month Header */}
-                        <div className="bg-slate-100/70 p-3 rounded-xl flex items-center justify-between mb-3 border border-slate-200/50">
-                          <span className="font-black text-slate-800 text-xs uppercase tracking-tight">{group.monthName}</span>
-                          <span className="font-black text-blue-600 text-xs">Spent: ₹{group.monthTotal.toFixed(2)}</span>
-                        </div>
+                      <div key={gIdx} className="mb-4 last:mb-0">
                         {/* Table */}
                         <div className="overflow-x-auto border border-slate-150 rounded-xl">
                           <table className="w-full text-left border-collapse table-auto min-w-[800px]">
@@ -923,11 +908,28 @@ export default function ReportsPage() {
           #printable-receipt-area {
             border: none !important;
             box-shadow: none !important;
-            padding: 20px !important;
+            padding: 15px !important;
             max-width: 100% !important;
             width: 100% !important;
             margin: 0 auto !important;
             background: white !important;
+            font-size: 10px !important;
+          }
+          #printable-receipt-area table th,
+          #printable-receipt-area table td {
+            padding: 4px 6px !important;
+            font-size: 9px !important;
+          }
+          #printable-receipt-area h2 {
+            font-size: 16px !important;
+          }
+          .print-summary-card {
+            margin-top: 8px !important;
+            padding: 8px !important;
+            gap: 8px !important;
+          }
+          .print-summary-card span {
+            font-size: 8px !important;
           }
         }
       `}</style>
