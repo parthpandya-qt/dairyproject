@@ -465,6 +465,8 @@ export default function ReportsPage() {
                         const rate = defaultRows.find(r => r.defaultItem)?.defaultItem?.rate || activeCustomer.itemPrice || 0;
                         const defaultTotalBill = totalQty * rate;
 
+                        if (totalQty === 0) return null;
+
                         return (
                           <div className="p-4 bg-slate-50/60 border border-slate-200/80 rounded-2xl grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-bold text-slate-700 mt-4 shadow-sm">
                             <div>
@@ -494,11 +496,25 @@ export default function ReportsPage() {
               </div>
 
               {/* Financial Balance Summary Banner */}
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/60 mt-4 flex items-center justify-between">
-                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Total Monthly Spent</span>
-                <span className="text-lg font-black text-slate-800">
-                  ₹{getSelectedMonthTotal(activeCustomer).toFixed(2)}
-                </span>
+              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/60 mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Monthly Deliveries Spent</span>
+                  <span className="text-base font-extrabold text-slate-800">
+                    ₹{getSelectedMonthTotal(activeCustomer).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Opening Balance</span>
+                  <span className="text-base font-extrabold text-slate-800">
+                    ₹{Number(activeCustomer.openingBalance || 0).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex flex-col border-t md:border-t-0 md:border-l border-slate-200 pt-3 md:pt-0 md:pl-6 bg-blue-50/50 p-2.5 rounded-xl">
+                  <span className="text-[10px] text-blue-500 font-extrabold uppercase tracking-wider">Total Monthly Spent (Inc. Opening)</span>
+                  <span className="text-lg font-black text-blue-600">
+                    ₹{(getSelectedMonthTotal(activeCustomer) + Number(activeCustomer.openingBalance || 0)).toFixed(2)}
+                  </span>
+                </div>
               </div>
 
               {/* Lock & Save / Print / Edit Ledger Buttons */}
@@ -738,6 +754,8 @@ export default function ReportsPage() {
                           const totalQty = totalMorning + totalEvening;
                           const rate = defaultRows.find(r => r.defaultItem)?.defaultItem?.rate || selectedCustomerForReceipt.itemPrice || 0;
                           const defaultTotalBill = totalQty * rate;
+
+                          if (totalQty === 0) return null;
 
                           return (
                             <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-4 text-[10px] font-bold text-slate-700 mt-3 print-summary-card">

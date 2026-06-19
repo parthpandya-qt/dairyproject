@@ -505,6 +505,8 @@ function LedgerContent() {
                     const rate = allocatedEntries.find(r => r.isDefault)?.rate || activeCustomer.itemPrice || 0;
                     const defaultTotalBill = totalQty * rate;
 
+                    if (totalQty === 0) return null;
+
                     return (
                       <div className="text-xs font-bold text-slate-700 flex flex-wrap gap-x-6 gap-y-2">
                         <div>
