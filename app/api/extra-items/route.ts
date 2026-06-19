@@ -1,4 +1,4 @@
-import dbConnect from "@/lib/db";
+import { dbConnect } from "@/lib/db";
 import { ExtraItem } from "@/models/ExtraItem";
 import { getCurrentUserId } from "@/lib/auth";
 import { NextResponse } from "next/server";

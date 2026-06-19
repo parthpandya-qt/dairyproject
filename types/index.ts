@@ -65,3 +65,19 @@ export interface IExtraItem {
   pricePerUnit?: number;
   createdAt?: Date;
 }
+
+export interface IBill {
+  _id?: string;
+  id?: number;
+  userId: number;
+  customerId: number;
+  customerName?: string;
+  billingMonth: string;
+  openingBalance: number;
+  deliveriesTotal: number;
+  totalAmount: number;
+  paidAmount: number;
+  status: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}

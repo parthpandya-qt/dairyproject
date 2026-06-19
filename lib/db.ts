@@ -1,22 +1,25 @@
 import mysql from 'mysql2/promise';
 
-let pool: mysql.Pool | null = null;
-let initialized = false;
-let initializingPromise: Promise<void> | null = null;
+const globalForMysql = global as typeof globalThis & {
+  mysqlPool?: mysql.Pool;
+  mysqlInitialized?: boolean;
+  mysqlInitializingPromise?: Promise<void>;
+};
 
 export async function dbConnect() {
-  if (pool) {
-    if (!initialized) {
-      if (!initializingPromise) {
-        initializingPromise = initializeDatabase(pool);
+  if (globalForMysql.mysqlPool) {
+    if (!globalForMysql.mysqlInitialized) {
+      if (!globalForMysql.mysqlInitializingPromise) {
+        globalForMysql.mysqlInitializingPromise = initializeDatabase(globalForMysql.mysqlPool);
       }
-      await initializingPromise;
+      await globalForMysql.mysqlInitializingPromise;
     }
-    return pool;
+    return globalForMysql.mysqlPool;
   }
 
   // Parse connection settings
   const databaseUrl = process.env.DATABASE_URL;
+  let pool: mysql.Pool;
   
   if (databaseUrl) {
     pool = mysql.createPool(databaseUrl);
@@ -40,15 +43,18 @@ export async function dbConnect() {
     });
   }
 
-  if (!initialized) {
-    if (!initializingPromise) {
-      initializingPromise = initializeDatabase(pool);
+  globalForMysql.mysqlPool = pool;
+
+  if (!globalForMysql.mysqlInitialized) {
+    if (!globalForMysql.mysqlInitializingPromise) {
+      globalForMysql.mysqlInitializingPromise = initializeDatabase(pool);
     }
-    await initializingPromise;
+    await globalForMysql.mysqlInitializingPromise;
   }
 
   return pool;
 }
+
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function query(sql: string, params?: any[]) {
@@ -104,6 +110,19 @@ async function initializeDatabase(connectionPool: mysql.Pool) {
       ) ENGINE=InnoDB;
     `);
 
+    // 4b. Create default_dairy_items table
+    await connectionPool.execute(`
+      CREATE TABLE IF NOT EXISTS default_dairy_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        pricePerUnit DECIMAL(10,2) NOT NULL,
+        unit VARCHAR(50) NOT NULL DEFAULT 'Liter',
+        deletedAt TIMESTAMP NULL DEFAULT NULL,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB;
+    `);
+
    
 
     await connectionPool.execute(`
@@ -117,6 +136,42 @@ async function initializeDatabase(connectionPool: mysql.Pool) {
         eveningQuantity DECIMAL(5,2) DEFAULT 0.00,
         totalPrice DECIMAL(10,2) DEFAULT 0.00,
         pricePerUnit DECIMAL(10,2) DEFAULT 0.00,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (customerId) REFERENCES customers(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB;
+    `);
+
+    // 5. Create extra_item table
+    await connectionPool.execute(`
+      CREATE TABLE IF NOT EXISTS extra_item (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        userId INT NOT NULL,
+        customerId INT NOT NULL,
+        itemId INT NOT NULL,
+        isDefaultItem TINYINT DEFAULT 0,
+        date DATE NOT NULL,
+        quantity DECIMAL(5,2) DEFAULT 0.00,
+        totalPrice DECIMAL(10,2) DEFAULT 0.00,
+        pricePerUnit DECIMAL(10,2) DEFAULT 0.00,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (customerId) REFERENCES customers(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB;
+    `);
+
+    // 6. Create bills table
+    await connectionPool.execute(`
+      CREATE TABLE IF NOT EXISTS bills (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        userId INT NOT NULL,
+        customerId INT NOT NULL,
+        billingMonth VARCHAR(50) NOT NULL,
+        openingBalance DECIMAL(10,2) DEFAULT 0.00,
+        deliveriesTotal DECIMAL(10,2) DEFAULT 0.00,
+        totalAmount DECIMAL(10,2) DEFAULT 0.00,
+        paidAmount DECIMAL(10,2) DEFAULT 0.00,
+        status VARCHAR(50) DEFAULT 'Unpaid',
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (customerId) REFERENCES customers(id) ON DELETE CASCADE
@@ -200,7 +255,7 @@ async function initializeDatabase(connectionPool: mysql.Pool) {
 
 
 
-    initialized = true;
+    globalForMysql.mysqlInitialized = true;
     console.log("MySQL Database tables verified/created successfully.");
   } catch (error) {
     console.error("Database initialization failed:", error);
@@ -208,4 +263,3 @@ async function initializeDatabase(connectionPool: mysql.Pool) {
   }
 }
 
-export default dbConnect;

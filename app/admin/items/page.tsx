@@ -289,7 +289,7 @@ export default function DairyItemsAdminPage() {
                         ₹{item.pricePerUnit} <span className="text-[10px] text-slate-400 font-medium">/ per {item.unit}</span>
                       </td>
                       <td className="table-body-cell py-4 px-5 text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-2 flex-wrap sm:flex-nowrap">
                           <button 
                             onClick={() => handleOpenEditModal(item)}
                             className="text-slate-650 bg-white hover:bg-slate-50 border border-slate-200/80 font-bold text-xs px-2.5 py-1.5 rounded-lg flex items-center transition cursor-pointer"

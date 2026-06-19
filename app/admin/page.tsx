@@ -17,22 +17,23 @@ export default async function AdminDashboardHome() {
   const totalItems = items.length;
   const itemNamesList = items.map((i: any) => i.name).join(", ");
 
-  // 3. Fetch total revenue generated till now across all transactions
-  const revenueRow = await query("SELECT SUM(totalPrice) as totalRevenue FROM transactions WHERE userId = ?", [userId]);
-  const totalRevenue = Number(revenueRow[0]?.totalRevenue || 0);
+  // 3. Fetch total revenue generated till now across all transactions and extra items
+  const txRevenueRow = await query("SELECT SUM(totalPrice) as totalRevenue FROM transactions WHERE userId = ?", [userId]);
+  const extraRevenueRow = await query("SELECT SUM(totalPrice) as totalRevenue FROM extra_item WHERE userId = ?", [userId]);
+  const totalRevenue = Number(txRevenueRow[0]?.totalRevenue || 0) + Number(extraRevenueRow[0]?.totalRevenue || 0);
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       {/* Welcome banner */}
-      <div className="bg-gradient-to-r from-[#0b0f19] to-slate-900 text-white p-8 rounded-3xl border border-slate-800/20 shadow-lg relative overflow-hidden">
-        <div className="absolute right-0 bottom-0 opacity-15 pointer-events-none translate-x-12 translate-y-12">
+      <div className="bg-gradient-to-r from-[#0b0f19] to-slate-900 text-white p-6 sm:p-8 rounded-3xl border border-slate-800/20 shadow-lg relative overflow-hidden">
+        <div className="absolute right-0 bottom-0 opacity-15 pointer-events-none translate-x-12 translate-y-12 hidden sm:block">
           <DairyLogo className="w-80 h-80" strokeWidth={0.75} />
         </div>
         <div className="relative z-10 max-w-xl space-y-3">
-          <h2 className="text-3xl font-black tracking-tight leading-tight">
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
             Welcome to the Dairy Management Center
           </h2>
-          <p className="text-slate-350 text-sm font-medium leading-relaxed">
+          <p className="text-slate-350 text-xs sm:text-sm font-medium leading-relaxed">
             Monitor distributions, manage registered clients, track product rate indices, and update ledger transaction logs.
           </p>
         </div>

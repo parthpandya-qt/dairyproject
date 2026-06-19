@@ -7,26 +7,26 @@ export default function GlobalRootPage() {
     <div className="min-h-screen bg-slate-50/50 flex flex-col justify-between text-black">
       
       {/* Top Navigation Bar */}
-      <header className="bg-white border-b border-slate-200/50 px-6 py-4 shadow-sm sticky top-0 z-50 bg-white/95 backdrop-blur-md">
+      <header className="bg-white border-b border-slate-200/50 px-4 sm:px-6 py-4 shadow-sm sticky top-0 z-50 bg-white/95 backdrop-blur-md">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2.5">
             <span className="p-1.5 bg-emerald-500/10 text-emerald-600 rounded-lg inline-flex">
               <DairyLogo className="w-5 h-5" strokeWidth={2.5} />
             </span>
-            <span className="text-xl font-black tracking-tight text-slate-800">
+            <span className="text-lg sm:text-xl font-black tracking-tight text-slate-800">
               DairyFlow Pro
             </span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-4">
             <Link 
               href="/signin" 
-              className="text-xs font-bold text-slate-650 hover:text-slate-900 transition tracking-wide uppercase"
+              className="text-xs font-bold text-slate-650 hover:text-slate-900 transition tracking-wide uppercase px-1 py-2"
             >
               Sign In
             </Link>
             <Link 
               href="/signup" 
-              className="text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl transition shadow-sm tracking-wide uppercase hover:scale-[1.01] active:scale-[0.98]"
+              className="text-[10px] sm:text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl transition shadow-sm tracking-wide uppercase hover:scale-[1.01] active:scale-[0.98]"
             >
               Register Admin
             </Link>
@@ -35,27 +35,27 @@ export default function GlobalRootPage() {
       </header>
 
       {/* Hero Section */}
-      <main className="flex-1 flex items-center justify-center p-6 my-12">
-        <div className="max-w-3xl text-center space-y-8">
-          <div className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-3.5 py-1 rounded-full text-emerald-700 text-xs font-bold uppercase tracking-wider">
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-6 my-6 sm:my-12">
+        <div className="max-w-3xl text-center space-y-6 sm:space-y-8">
+          <div className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-3.5 py-1 rounded-full text-emerald-700 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
             <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
             Enterprise Dairy Management System
           </div>
           
-          <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-tight">
-            Streamline Your Daily <br />
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-tight">
+            Streamline Your Daily <br className="hidden sm:inline" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-green-600">
               Dairy & Milk Ledger
             </span>
           </h1>
           
-          <p className="text-sm md:text-base text-slate-500 max-w-xl mx-auto leading-relaxed font-medium">
+          <p className="text-xs sm:text-sm md:text-base text-slate-500 max-w-xl mx-auto leading-relaxed font-medium px-2">
             Efficiently log daily milk distributions in liters, manage customer directories, track catalog pricing, and review transactions from a unified, security-first administrator portal.
           </p>
 
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-3 pt-2 sm:pt-4 px-4 sm:px-0">
             <Link 
               href="/signin" 
               className="w-full sm:w-auto bg-[#0b0f19] hover:bg-slate-900 text-white font-extrabold text-xs tracking-wider uppercase px-8 py-4 rounded-xl shadow-md transition duration-200 hover:scale-[1.01] active:scale-[0.98] text-center"
@@ -73,8 +73,8 @@ export default function GlobalRootPage() {
       </main>
 
       {/* Feature Cards Grid */}
-      <section className="bg-white border-t border-slate-200/60 py-16 px-6">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+      <section className="bg-white border-t border-slate-200/60 py-12 sm:py-16 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           <div className="p-6 bg-slate-50/60 rounded-2xl border border-slate-200/60 shadow-sm space-y-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,4 +1,4 @@
-import dbConnect from "@/lib/db";
+import { dbConnect } from "@/lib/db";
 import { Transaction } from "@/models/Transaction";
 import { getCurrentUserId } from "@/lib/auth";
 import { NextResponse } from "next/server";

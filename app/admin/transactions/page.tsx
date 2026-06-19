@@ -462,30 +462,7 @@ export default function TransactionsAdminPage() {
     setIsEditing(false);
   }
 
-  // Compute stats for selected date (either from saved transactions/extra items or customer default allocations)
-  const dailyMorningTotal = (isLogged
-    ? dailyTransactions.reduce((sum, tx) => sum + Number(tx.morningQuantity || 0), 0)
-    : customers.reduce((sum, cust) => sum + Number(cust.morningQuantity || 0), 0))
-    + dailyExtraItems.reduce((sum, ei) => sum + Number(ei.quantity || 0), 0);
 
-  const dailyEveningTotal = isLogged
-    ? dailyTransactions.reduce((sum, tx) => sum + Number(tx.eveningQuantity || 0), 0)
-    : customers.reduce((sum, cust) => sum + Number(cust.eveningQuantity || 0), 0);
-
-  const dailyRevenueTotal = (isLogged
-    ? dailyTransactions.reduce((sum, tx) => sum + Number(tx.totalPrice || 0), 0)
-    : customers.reduce((sum, cust) => {
-        const item = items.find((i) => i._id === cust.itemId?.toString()) || 
-                     (cust.itemName ? {
-                        _id: cust.itemId?.toString() || "",
-                        name: cust.itemName,
-                        pricePerUnit: Number(cust.itemPrice || 0),
-                        unit: cust.itemUnit || "Liter"
-                     } : items[0]);
-        if (!item) return sum;
-        return sum + (Number(cust.morningQuantity || 0) + Number(cust.eveningQuantity || 0)) * item.pricePerUnit;
-      }, 0))
-    + dailyExtraItems.reduce((sum, ei) => sum + Number(ei.totalPrice || 0), 0);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 text-black pb-12">
@@ -555,56 +532,7 @@ export default function TransactionsAdminPage() {
         </div>
       )}
 
-      {/* Dynamic Summary Cards Banner */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-        <div className="border-l-4 border-slate-400 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between transition hover:shadow-md duration-200">
-          <div>
-            <span className="text-[10px] font-extrabold text-slate-455 uppercase tracking-widest block">Sheet Date</span>
-            <span className="text-lg font-black text-slate-800 mt-1 block">{selectedDate}</span>
-          </div>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-50 text-slate-500">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-        </div>
 
-        <div className="border-l-4 border-amber-500 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between transition hover:shadow-md duration-200">
-          <div>
-            <span className="text-[10px] font-extrabold text-slate-455 uppercase tracking-widest block">Morning + Extra Qty</span>
-            <span className="text-xl font-black text-amber-600 mt-1 block">{dailyMorningTotal.toFixed(2)} Units</span>
-          </div>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-50 text-amber-600">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-            </svg>
-          </div>
-        </div>
-
-        <div className="border-l-4 border-indigo-500 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between transition hover:shadow-md duration-200">
-          <div>
-            <span className="text-[10px] font-extrabold text-slate-455 uppercase tracking-widest block">Evening Quantity</span>
-            <span className="text-xl font-black text-indigo-600 mt-1 block">{dailyEveningTotal.toFixed(2)} Units</span>
-          </div>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-50 text-indigo-600">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-            </svg>
-          </div>
-        </div>
-
-        <div className="border-l-4 border-emerald-500 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between transition hover:shadow-md duration-200">
-          <div>
-            <span className="text-[10px] font-extrabold text-slate-455 uppercase tracking-widest block">Revenue</span>
-            <span className="text-xl font-black text-emerald-600 mt-1 block">₹{dailyRevenueTotal.toFixed(2)}</span>
-          </div>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-50 text-emerald-600">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-            </svg>
-          </div>
-        </div>
-      </div>
 
       {/* Daily Log Table Sheet */}
       <div className="bg-white rounded-2xl border border-slate-250/60 shadow-sm overflow-hidden">
@@ -671,9 +599,9 @@ export default function TransactionsAdminPage() {
                   </th>
                   <th className="table-header-cell border-b border-slate-200/60 py-3.5 px-5">
                     <div className="flex items-center gap-1.5">
-                      <svg className="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      {/* <svg className="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M12 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                      </svg>
+                      </svg> */}
                       Extra
                     </div>
                   </th>
@@ -847,12 +775,12 @@ export default function TransactionsAdminPage() {
                                          (row.itemName ? {
                                             _id: row.itemId?.toString() || "",
                                             name: row.itemName,
-                                            pricePerUnit: Number(row.pricePerUnit || row.itemPrice || 0),
-                                            unit: row.itemUnit || "Liter"
+                                            pricePerUnit: Number(row.pricePerUnit || row.itemPrice || 0)
+                                           
                                          } : items[0]);
                             return (
                               <div key={idx} className="h-9 flex items-center text-xs font-bold text-slate-700">
-                                {row.morningQuantity} {item?.unit || "L"}
+                                {row.morningQuantity} 
                               </div>
                             );
                           })}
@@ -894,12 +822,12 @@ export default function TransactionsAdminPage() {
                                          (row.itemName ? {
                                             _id: row.itemId?.toString() || "",
                                             name: row.itemName,
-                                            pricePerUnit: Number(row.pricePerUnit || row.itemPrice || 0),
-                                            unit: row.itemUnit || "Liter"
+                                            pricePerUnit: Number(row.pricePerUnit || row.itemPrice || 0)
+                                            
                                          } : items[0]);
                             return (
                               <div key={idx} className="h-9 flex items-center text-xs font-bold text-slate-700">
-                                {row.eveningQuantity} {item?.unit || "L"}
+                                {row.eveningQuantity} 
                               </div>
                             );
                           })}
@@ -910,69 +838,68 @@ export default function TransactionsAdminPage() {
                         <div className="flex flex-col gap-2.5">
                           {isEditing || !isLogged ? (
                             extraRows.length === 0 ? null : (
-                              extraRows.map((row, idx) => {
-                                const txId = row._id || "";
-                                const txEdit = editedQuantities[txId] || {
-                                  morning: row.quantity.toString(),
-                                  evening: "0",
-                                  itemId: row.itemId || ""
-                                };
-                                const item = items.find((i) => i._id === row.itemId) || 
-                                             items.find((i) => i.name === row.itemName) || 
-                                             { name: row.itemName || "Extra Item", unit: row.itemUnit || "Liter" };
-                                return (
-                                  <div key={idx} className="flex items-center gap-2 bg-slate-50/50 border border-slate-200/60 p-2 rounded-xl">
-                                    <span className="text-[11px] font-extrabold text-slate-655 truncate max-w-[80px]" title={item.name}>
-                                      {item.name}
-                                    </span>
-                                    <div className="flex items-center gap-1">
-                                      <input
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        value={txEdit.morning}
-                                        onChange={(e) => setEditedQuantities({
-                                          ...editedQuantities,
-                                          [txId]: { ...txEdit, morning: e.target.value, evening: "0" }
-                                        })}
-                                        className="h-8 border border-slate-200 rounded-lg px-2 text-xs w-16 text-slate-800 font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 bg-white"
-                                      />
-                                      <span className="text-[10px] text-slate-400 font-medium">{item.unit || "L"}</span>
-                                    </div>
-                                  </div>
-                                );
-                              })
-                            )
-                          ) : (
-                            extraRows.length > 0 && (
-                              <div className="flex flex-wrap gap-2 items-center">
+                              <div className="flex flex-col gap-2">
                                 {extraRows.map((row, idx) => {
+                                  const txId = row._id || "";
+                                  const txEdit = editedQuantities[txId] || {
+                                    morning: row.quantity.toString(),
+                                    evening: "0",
+                                    itemId: row.itemId || ""
+                                  };
                                   const item = items.find((i) => i._id === row.itemId) || 
                                                items.find((i) => i.name === row.itemName) || 
                                                { name: row.itemName || "Extra Item", unit: row.itemUnit || "Liter" };
                                   return (
-                                    <div key={idx} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50/75 text-amber-800 border border-amber-200/50 rounded-xl text-xs font-bold shadow-sm hover:shadow transition duration-150">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                      <span className="text-slate-855 font-extrabold">{item.name}:</span>
-                                      <span className="text-amber-700">{row.quantity} {item.unit || "L"}</span>
+                                    <div key={idx} className="flex items-center gap-2 bg-slate-50/50 border border-slate-200/60 p-2 rounded-xl">
+                                      <span className="text-[11px] font-extrabold text-slate-655 truncate max-w-[80px]" title={item.name}>
+                                        {item.name}
+                                      </span>
+                                      <div className="flex items-center gap-1">
+                                        <input
+                                          type="number"
+                                          step="0.01"
+                                          min="0"
+                                          value={txEdit.morning}
+                                          onChange={(e) => setEditedQuantities({
+                                            ...editedQuantities,
+                                            [txId]: { ...txEdit, morning: e.target.value, evening: "0" }
+                                          })}
+                                          className="h-8 border border-slate-200 rounded-lg px-2 text-xs w-16 text-slate-800 font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 bg-white"
+                                        />
+                                        <span className="text-[10px] text-slate-400 font-medium">{item.unit || "L"}</span>
+                                      </div>
                                     </div>
                                   );
                                 })}
                               </div>
                             )
-                          )}
-
-                          {/* Always render the "+ Add Extra" button at the bottom of the column cell if not editing */}
-                          {!isEditing && !isCreatedAfter(cust.createdAt, selectedDate) && (
-                            <button
-                              onClick={() => handleOpenAddExtraModal(cust)}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-250 rounded-xl transition duration-150 font-bold text-xs cursor-pointer shadow-sm hover:shadow mt-1 w-fit"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
-                              </svg>
-                              Add Extra
-                            </button>
+                          ) : (
+                            <div className="flex flex-col gap-1.5 items-start">
+                              {extraRows.map((row, idx) => {
+                                const item = items.find((i) => i._id === row.itemId) || 
+                                             items.find((i) => i.name === row.itemName) || 
+                                             { name: row.itemName || "Extra Item", unit: row.itemUnit || "Liter" };
+                                return (
+                                  <div key={idx} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50/75 text-amber-800 border border-amber-200/50 rounded-xl text-xs font-bold shadow-sm hover:shadow transition duration-150">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                    <span className="text-slate-855 font-extrabold">{item.name}:</span>
+                                    <span className="text-amber-700">{row.quantity} {item.unit || "L"}</span>
+                                  </div>
+                                );
+                              })}
+                              
+                              {!isCreatedAfter(cust.createdAt, selectedDate) && (
+                                <button
+                                  onClick={() => handleOpenAddExtraModal(cust)}
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-250 rounded-xl transition duration-150 font-bold text-xs cursor-pointer shadow-sm hover:shadow w-fit"
+                                >
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+                                  </svg>
+                                  Add Extra
+                                </button>
+                              )}
+                            </div>
                           )}
                         </div>
                       </td>
@@ -1029,7 +956,7 @@ export default function TransactionsAdminPage() {
       </div>
 
       {/* Add Extra Item Modal */}
-      {isModalOpen && (
+      {isModalOpen && modalCustomer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/65 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xl w-full max-w-md p-6 space-y-6 mx-4 transform transition-all animate-in zoom-in-95 duration-200 text-slate-800">
             {/* Modal Header */}
@@ -1040,11 +967,12 @@ export default function TransactionsAdminPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
                   </svg>
                 </span>
-                Add Extra Item
+                Add Extra Product
               </h3>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-655 transition p-1 hover:bg-slate-50 rounded-lg cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 transition p-1 hover:bg-slate-50 rounded-lg cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
@@ -1055,10 +983,16 @@ export default function TransactionsAdminPage() {
             {/* Modal Content / Form */}
             <form onSubmit={handleAddExtraItem} className="space-y-4">
               {modalCustomer && (
-                <div className="bg-slate-50/80 border border-slate-100 p-3.5 rounded-2xl">
-                  <p className="text-[10px] font-extrabold text-slate-455 uppercase tracking-widest">Customer</p>
-                  <p className="font-bold text-slate-800 mt-0.5">{modalCustomer.name}</p>
-                  <p className="text-xs text-slate-450 mt-0.5">{modalCustomer.phone}</p>
+                <div className="bg-slate-50 border border-slate-100 p-3.5 rounded-2xl flex items-center gap-3">
+                  <span className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </span>
+                  <div>
+                    <p className="font-extrabold text-slate-900 text-sm">{modalCustomer.name}</p>
+                    <p className="text-xs text-slate-500">{modalCustomer.phone} • {modalCustomer.address}</p>
+                  </div>
                 </div>
               )}
 
@@ -1074,29 +1008,11 @@ export default function TransactionsAdminPage() {
                   className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
                 >
                   <option value="" disabled>-- Select a Product --</option>
-                  {(() => {
-                    const existingItemIds = new Set<string>();
-                    if (modalCustomer) {
-                      if (modalCustomer.itemId) {
-                        existingItemIds.add(modalCustomer.itemId.toString());
-                      }
-                      const custTxs = dailyTransactions.filter((tx) => tx.customerId === Number(modalCustomer._id));
-                      custTxs.forEach((tx) => {
-                        if (tx.itemId) existingItemIds.add(tx.itemId.toString());
-                      });
-                      const custExtras = dailyExtraItems.filter((ei) => ei.customerId === Number(modalCustomer._id));
-                      custExtras.forEach((ei) => {
-                        if (ei.itemId) existingItemIds.add(ei.itemId.toString());
-                      });
-                    }
-                    return items
-                      .filter((item) => !existingItemIds.has(item._id))
-                      .map((item) => (
-                        <option key={item._id} value={item._id}>
-                          {item.name} (₹{item.pricePerUnit}/{item.unit})
-                        </option>
-                      ));
-                  })()}
+                  {items.map((item) => (
+                    <option key={item._id} value={item._id}>
+                      {item.name} (₹{item.pricePerUnit}/{item.unit})
+                    </option>
+                  ))}
                 </select>
               </div>
 

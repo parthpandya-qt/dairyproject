@@ -402,7 +402,7 @@ export default function CustomersAdminPage() {
                         {cust.address}
                       </td>
                       <td className="table-body-cell py-4 px-5 text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-2 flex-wrap sm:flex-nowrap">
                           <button 
                             onClick={() => handleOpenEditModal(cust)}
                             className="text-slate-655 bg-white hover:bg-slate-50 border border-slate-200/80 font-bold text-xs px-2.5 py-1.5 rounded-lg flex items-center transition cursor-pointer"
@@ -422,7 +422,7 @@ export default function CustomersAdminPage() {
                             Delete
                           </button>
                           <Link 
-                            href={`/admin/customers/${cust._id}/ledger`}
+                            href={`/admin/ledger?customerId=${cust._id}`}
                             className="text-blue-650 hover:text-blue-750 bg-blue-50/50 hover:bg-blue-50/80 border border-blue-100 font-bold text-xs px-2.5 py-1.5 rounded-lg flex items-center transition cursor-pointer"
                           >
                             <svg className="w-3.5 h-3.5 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
