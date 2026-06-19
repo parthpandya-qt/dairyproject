@@ -156,6 +156,7 @@ export default function ReportsPage() {
       morningQty: number;
       eveningQty: number;
       price: number;
+      rate: number;
     };
     extraItems: {
       name: string;
@@ -192,6 +193,7 @@ export default function ReportsPage() {
         morningQty: Number(tx.morningQuantity || 0),
         eveningQty: Number(tx.eveningQuantity || 0),
         price: Number(tx.totalPrice || 0),
+        rate: Number(tx.pricePerUnit || tx.itemPrice || 0),
       };
       dayMap[dateStr].dayTotal += Number(tx.totalPrice || 0);
     });
@@ -401,7 +403,6 @@ export default function ReportsPage() {
                               <th className="py-3 px-4">Allocated Product</th>
                               <th className="py-3 px-4 text-center">Morning Qty</th>
                               <th className="py-3 px-4 text-center">Evening Qty</th>
-                              <th className="py-3 px-4 text-right">Allocated Price</th>
                               <th className="py-3 px-4">Extra Product</th>
                               <th className="py-3 px-4 text-center">Extra Qty</th>
                               <th className="py-3 px-4 text-right">Extra Price</th>
@@ -418,9 +419,6 @@ export default function ReportsPage() {
                                 </td>
                                 <td className="py-3 px-4 text-center text-slate-500">
                                   {dayRow.defaultItem && dayRow.defaultItem.eveningQty > 0 ? dayRow.defaultItem.eveningQty : "-"}
-                                </td>
-                                <td className="py-3 px-4 text-right text-slate-600">
-                                  {dayRow.defaultItem ? `₹${dayRow.defaultItem.price.toFixed(2)}` : "-"}
                                 </td>
                                 <td className="py-3 px-4 text-slate-800 font-medium">
                                   {dayRow.extraItems && dayRow.extraItems.length > 0 ? (
@@ -457,6 +455,39 @@ export default function ReportsPage() {
                           </tbody>
                         </table>
                       </div>
+
+                      {/* Default Allocations Calculation Details */}
+                      {(() => {
+                        const defaultRows = group.rows.filter(r => r.defaultItem);
+                        const totalMorning = defaultRows.reduce((sum, r) => sum + (r.defaultItem?.morningQty || 0), 0);
+                        const totalEvening = defaultRows.reduce((sum, r) => sum + (r.defaultItem?.eveningQty || 0), 0);
+                        const totalQty = totalMorning + totalEvening;
+                        const rate = defaultRows.find(r => r.defaultItem)?.defaultItem?.rate || activeCustomer.itemPrice || 0;
+                        const defaultTotalBill = totalQty * rate;
+
+                        return (
+                          <div className="p-4 bg-slate-50/60 border border-slate-200/80 rounded-2xl grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-bold text-slate-700 mt-4 shadow-sm">
+                            <div>
+                              <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Morning Qty</span>
+                              <span className="text-sm font-extrabold text-slate-900">{totalMorning} {activeCustomer.itemUnit || 'L'}</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Evening Qty</span>
+                              <span className="text-sm font-extrabold text-slate-900">{totalEvening} {activeCustomer.itemUnit || 'L'}</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Rate (Per Unit)</span>
+                              <span className="text-sm font-extrabold text-slate-900">₹{rate.toFixed(2)} / {activeCustomer.itemUnit || 'L'}</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Default Bill</span>
+                              <span className="text-sm font-extrabold text-blue-600">
+                                ({totalMorning} + {totalEvening}) × ₹{rate.toFixed(2)} = ₹{defaultTotalBill.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   ))
                 )}
@@ -640,7 +671,7 @@ export default function ReportsPage() {
                                 <th className="py-2.5 px-3">Allocated Product</th>
                                 <th className="py-2.5 px-3 text-center">Morning Qty</th>
                                 <th className="py-2.5 px-3 text-center">Evening Qty</th>
-                                <th className="py-2.5 px-3 text-right">Allocated Price</th>
+                                
                                 <th className="py-2.5 px-3">Extra Product</th>
                                 <th className="py-2.5 px-3 text-center">Extra Qty</th>
                                 <th className="py-2.5 px-3 text-right">Extra Price</th>
@@ -662,9 +693,7 @@ export default function ReportsPage() {
                                   <td className="py-2.5 px-3 text-center text-slate-600">
                                     {dayRow.defaultItem && dayRow.defaultItem.eveningQty > 0 ? `${dayRow.defaultItem.eveningQty}` : "-"}
                                   </td>
-                                  <td className="py-2.5 px-3 text-right text-slate-600">
-                                    {dayRow.defaultItem ? `₹${dayRow.defaultItem.price.toFixed(2)}` : "-"}
-                                  </td>
+                                  
                                   <td className="py-2.5 px-3 text-slate-800 font-medium">
                                     {dayRow.extraItems && dayRow.extraItems.length > 0 ? (
                                       <div className="space-y-1">
@@ -700,6 +729,39 @@ export default function ReportsPage() {
                             </tbody>
                           </table>
                         </div>
+
+                        {/* Default Allocations Calculation Details */}
+                        {(() => {
+                          const defaultRows = group.rows.filter(r => r.defaultItem);
+                          const totalMorning = defaultRows.reduce((sum, r) => sum + (r.defaultItem?.morningQty || 0), 0);
+                          const totalEvening = defaultRows.reduce((sum, r) => sum + (r.defaultItem?.eveningQty || 0), 0);
+                          const totalQty = totalMorning + totalEvening;
+                          const rate = defaultRows.find(r => r.defaultItem)?.defaultItem?.rate || selectedCustomerForReceipt.itemPrice || 0;
+                          const defaultTotalBill = totalQty * rate;
+
+                          return (
+                            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-4 text-[10px] font-bold text-slate-700 mt-3 print-summary-card">
+                              <div>
+                                <span className="text-[8px] text-slate-400 uppercase tracking-wider block">Total Morning Qty</span>
+                                <span className="text-slate-900 font-extrabold">{totalMorning} {selectedCustomerForReceipt.itemUnit || 'L'}</span>
+                              </div>
+                              <div>
+                                <span className="text-[8px] text-slate-400 uppercase tracking-wider block">Total Evening Qty</span>
+                                <span className="text-slate-900 font-extrabold">{totalEvening} {selectedCustomerForReceipt.itemUnit || 'L'}</span>
+                              </div>
+                              <div>
+                                <span className="text-[8px] text-slate-400 uppercase tracking-wider block">Rate (Per Unit)</span>
+                                <span className="text-slate-900 font-extrabold">₹{rate.toFixed(2)} / {selectedCustomerForReceipt.itemUnit || 'L'}</span>
+                              </div>
+                              <div>
+                                <span className="text-[8px] text-slate-400 uppercase tracking-wider block">Total Default Bill</span>
+                                <span className="text-blue-600 font-black">
+                                  ({totalMorning} + {totalEvening}) × ₹{rate.toFixed(2)} = ₹{defaultTotalBill.toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     ))
                   )}

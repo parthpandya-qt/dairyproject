@@ -421,13 +421,12 @@ function LedgerContent() {
                         <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Allocated Product</th>
                         <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Morning Qty</th>
                         <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Evening Qty</th>
-                        <th className="table-header-cell border-b border-slate-100 py-3.5 px-5 text-right">Allocated Price</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {allocatedEntries.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="p-10 text-center text-slate-400 text-xs font-semibold">
+                          <td colSpan={4} className="p-10 text-center text-slate-400 text-xs font-semibold">
                             No default allocation deliveries logged for the selected filters.
                           </td>
                         </tr>
@@ -490,26 +489,6 @@ function LedgerContent() {
                                 <span className="text-[10px] text-slate-400 font-semibold">{row.itemUnit}</span>
                               </div>
                             </td>
-                            <td className="py-3.5 px-5 text-xs font-black text-slate-855 text-right">
-                              <div className="flex justify-end items-center gap-1">
-                                <span className="text-slate-400 text-xs">₹</span>
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  value={editedValues[row.id]?.allocatedPrice || "0.00"}
-                                  onChange={(e) =>
-                                    setEditedValues({
-                                      ...editedValues,
-                                      [row.id]: {
-                                        ...editedValues[row.id],
-                                        allocatedPrice: e.target.value,
-                                      },
-                                    })
-                                  }
-                                  className="w-20 border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white text-right"
-                                />
-                              </div>
-                            </td>
                           </tr>
                         ))
                       )}
@@ -517,11 +496,43 @@ function LedgerContent() {
                   </table>
                 </div>
 
-                <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end">
+                <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                  {/* Summary info */}
+                  {(() => {
+                    const totalMorning = allocatedEntries.reduce((sum, r) => sum + Number(editedValues[r.id]?.morningQty || 0), 0);
+                    const totalEvening = allocatedEntries.reduce((sum, r) => sum + Number(editedValues[r.id]?.eveningQty || 0), 0);
+                    const totalQty = totalMorning + totalEvening;
+                    const rate = allocatedEntries.find(r => r.isDefault)?.rate || activeCustomer.itemPrice || 0;
+                    const defaultTotalBill = totalQty * rate;
+
+                    return (
+                      <div className="text-xs font-bold text-slate-700 flex flex-wrap gap-x-6 gap-y-2">
+                        <div>
+                          <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Morning</span>
+                          <span className="text-slate-900">{totalMorning} {activeCustomer.unit || 'L'}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Evening</span>
+                          <span className="text-slate-900">{totalEvening} {activeCustomer.unit || 'L'}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Rate</span>
+                          <span className="text-slate-900">₹{rate.toFixed(2)} / {activeCustomer.unit || 'L'}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Bill</span>
+                          <span className="text-blue-600 font-extrabold">
+                            ({totalMorning} + {totalEvening}) × ₹{rate.toFixed(2)} = ₹{defaultTotalBill.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   <button
                     onClick={() => handleSaveLedgerChanges("default")}
                     disabled={loading}
-                    className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-sm rounded-xl shadow-md hover:shadow active:scale-[0.98] cursor-pointer flex items-center gap-1.5 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-sm rounded-xl shadow-md hover:shadow active:scale-[0.98] cursor-pointer flex items-center gap-1.5 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                   >
                     Save Default Allocations changes
                   </button>
