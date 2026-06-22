@@ -1,4 +1,4 @@
-import { dbConnect } from "@/lib/db";
+import { dbConnect, query } from "@/lib/db";
 import { Bill } from "@/models/Bill";
 import { getCurrentUserId } from "@/lib/auth";
 import { NextResponse } from "next/server";
@@ -27,6 +27,18 @@ export async function PUT(request: Request, { params }: RouteParams) {
       );
     }
 
+    // 1. Fetch current bill details to get customerId and totalAmount
+    const billsList = await query(`
+      SELECT customerId, totalAmount FROM bills WHERE id = ? AND userId = ?
+    `, [id, userId]);
+
+    if (!billsList || billsList.length === 0) {
+      return NextResponse.json({ error: "Bill not found or unauthorized" }, { status: 404 });
+    }
+
+    const bill = billsList[0];
+
+    // 2. Update the bill status and paid amount
     const updated = await Bill.findByIdAndUpdate(id, {
       paidAmount: Number(paidAmount),
       status
@@ -35,6 +47,16 @@ export async function PUT(request: Request, { params }: RouteParams) {
     if (!updated) {
       return NextResponse.json({ error: "Bill not found or unauthorized" }, { status: 404 });
     }
+
+    // 3. Calculate remaining outstanding amount: totalAmount - paidAmount
+    const remaining = Math.max(0, Number(bill.totalAmount) - Number(paidAmount));
+
+    // 4. Update the customer's openingBalance with the remaining unpaid portion
+    await query(`
+      UPDATE customers
+      SET openingBalance = ?
+      WHERE id = ? AND userId = ?
+    `, [remaining, bill.customerId, userId]);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

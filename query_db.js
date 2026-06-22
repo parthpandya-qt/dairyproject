@@ -47,6 +47,9 @@ async function main() {
   console.log("Clearing extra_item...");
   await connection.query("TRUNCATE TABLE extra_item");
 
+  console.log("Clearing bills...");
+  await connection.query("TRUNCATE TABLE bills");
+
   console.log("Clearing customers...");
   await connection.query("TRUNCATE TABLE customers");
 
@@ -123,27 +126,27 @@ async function main() {
   console.log("Inserting dummy customers...");
   const [cust1Res] = await connection.query(
     "INSERT INTO customers (userId, name, phone, address, morningQuantity, eveningQuantity, openingBalance, itemId, isDefaultItem, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    [userId, "Rohan Sharma", "9876543210", "Flat 101, Sun City, Indore", 1.5, 0.0, 150.00, cowMilkId, 1, "2026-05-01 00:00:00"]
+    [userId, "Rohan Sharma", "9876543210", "Flat 101, Sun City, Indore", 1.5, 0.0, 150.00, cowMilkId, 1, "2026-04-01 00:00:00"]
   );
   const cust1Id = cust1Res.insertId;
 
   const [cust2Res] = await connection.query(
     "INSERT INTO customers (userId, name, phone, address, morningQuantity, eveningQuantity, openingBalance, itemId, isDefaultItem, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    [userId, "Priya Patel", "9898989898", "House 12, Vijay Nagar, Indore", 1.0, 1.0, 0.00, bufMilkId, 1, "2026-05-01 00:00:00"]
+    [userId, "Priya Patel", "9898989898", "House 12, Vijay Nagar, Indore", 1.0, 1.0, 0.00, bufMilkId, 1, "2026-04-01 00:00:00"]
   );
   const cust2Id = cust2Res.insertId;
 
   const [cust3Res] = await connection.query(
     "INSERT INTO customers (userId, name, phone, address, morningQuantity, eveningQuantity, openingBalance, itemId, isDefaultItem, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    [userId, "Amit Verma", "9123456789", "Sector C, Scheme 54, Indore", 0.0, 2.0, 500.00, cowMilkId, 1, "2026-05-01 00:00:00"]
+    [userId, "Amit Verma", "9123456789", "Sector C, Scheme 54, Indore", 0.0, 2.0, 500.00, cowMilkId, 1, "2026-04-01 00:00:00"]
   );
   const cust3Id = cust3Res.insertId;
 
-  // Seed default allocation transactions from May 1st, 2026 to June 18th, 2026 (Two Months)
-  console.log("Inserting historical transactions for May and June 2026...");
+  // Seed default allocation transactions from April 1st, 2026 to June 22nd, 2026 (Three Months)
+  console.log("Inserting historical transactions for April, May and June 2026...");
   
-  const startDate = new Date("2026-05-01");
-  const endDate = new Date("2026-06-18");
+  const startDate = new Date("2026-04-01");
+  const endDate = new Date("2026-06-22");
   
   const customersList = [
     { id: cust1Id, morningQuantity: 1.5, eveningQuantity: 0.0, itemId: cowMilkId, isDefaultItem: 1, rate: 60.00 },
@@ -174,10 +177,10 @@ async function main() {
   }
 
   // Seed extra item transactions
-  console.log("Inserting extra product deliveries for May and June...");
+  console.log("Inserting extra product deliveries for April, May and June...");
 
   // Rohan Sharma (cust1) fresh paneer
-  const paneerDates = ["2026-05-10", "2026-05-24", "2026-06-05", "2026-06-17"];
+  const paneerDates = ["2026-04-12", "2026-04-26", "2026-05-10", "2026-05-24", "2026-06-05", "2026-06-17"];
   for (const pDate of paneerDates) {
     await connection.query(
       "INSERT INTO extra_item (userId, customerId, itemId, isDefaultItem, date, quantity, totalPrice, pricePerUnit) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -186,7 +189,7 @@ async function main() {
   }
 
   // Priya Patel (cust2) ghee
-  const gheeDates = ["2026-05-15", "2026-06-01", "2026-06-16"];
+  const gheeDates = ["2026-04-15", "2026-05-15", "2026-06-01", "2026-06-16"];
   for (const gDate of gheeDates) {
     await connection.query(
       "INSERT INTO extra_item (userId, customerId, itemId, isDefaultItem, date, quantity, totalPrice, pricePerUnit) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -195,7 +198,7 @@ async function main() {
   }
 
   // Amit Verma (cust3) buttermilk
-  const buttermilkDates = ["2026-05-08", "2026-05-20", "2026-06-02", "2026-06-14"];
+  const buttermilkDates = ["2026-04-08", "2026-04-20", "2026-05-08", "2026-05-20", "2026-06-02", "2026-06-14"];
   for (const bmDate of buttermilkDates) {
     await connection.query(
       "INSERT INTO extra_item (userId, customerId, itemId, isDefaultItem, date, quantity, totalPrice, pricePerUnit) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",

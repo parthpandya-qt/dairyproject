@@ -555,11 +555,17 @@ export default function ReportsPage() {
               {/* Lock & Save / Print / Edit Ledger Buttons */}
               <div className="flex flex-wrap items-center justify-end gap-3 mt-6 no-print">
                 {(() => {
-                  const isSaved = selectedMonthFilter !== "all" && bills.some(
-                    (b) =>
-                      b.customerId.toString() === activeCustomer._id &&
-                      b.billingMonth === selectedMonthFilter
-                  );
+                  const savedBill = selectedMonthFilter !== "all"
+                    ? bills.find(
+                        (b) =>
+                          b.customerId.toString() === activeCustomer._id &&
+                          b.billingMonth === selectedMonthFilter
+                      )
+                    : null;
+
+                  const currentDeliveriesTotal = getSelectedMonthTotal(activeCustomer);
+                  const isSaved = savedBill && Math.abs(savedBill.deliveriesTotal - currentDeliveriesTotal) < 0.01;
+
                   return (
                     <>
                       <Link
@@ -586,25 +592,27 @@ export default function ReportsPage() {
                             ? "Cannot lock multiple months as a single bill record. Select a specific month first."
                             : isSaved
                             ? "This monthly bill is already locked and saved in the database"
+                            : savedBill
+                            ? "Updates have been made to the ledger. Click to update and re-lock this bill record."
                             : "Lock and save this bill record to the database"
                         }
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                         </svg>
-                        {isSaved ? "Locked & Saved" : savingBill ? "Locking..." : "Lock and save to database"}
+                        {isSaved ? "Locked & Saved" : savingBill ? "Locking..." : savedBill ? "Update Locked Bill" : "Lock and save to database"}
                       </button>
                       
                       <button
                         onClick={() => setSelectedCustomerForReceipt(activeCustomer)}
-                        disabled={!isSaved}
+                        disabled={!savedBill}
                         className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl shadow-md transition ${
-                          !isSaved
+                          !savedBill
                             ? "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200/50"
                             : "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
                         }`}
                         title={
-                          !isSaved
+                          !savedBill
                             ? "You must lock and save this monthly bill to the database before viewing the receipt preview"
                             : "Open receipt preview for printing"
                         }
