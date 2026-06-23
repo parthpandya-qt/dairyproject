@@ -33,6 +33,7 @@ export async function POST(request: Request) {
       env: {
         DATABASE_URL: process.env.DATABASE_URL || "",
         DAIRY_USER_ID: String(userId),
+        MCP_AUTH_TOKEN: process.env.MCP_SHARED_SECRET || "",
         ...process.env as Record<string, string>, // forward other env variables
       }
     });

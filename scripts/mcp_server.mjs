@@ -19,6 +19,15 @@ if (fs.existsSync(envPath)) {
   dotenv.config({ quiet: true });
 }
 
+// Authorization check to allow ONLY the internal chatbot to connect
+const SHARED_SECRET = process.env.MCP_SHARED_SECRET;
+const AUTH_TOKEN = process.env.MCP_AUTH_TOKEN;
+
+if (!SHARED_SECRET || !AUTH_TOKEN || AUTH_TOKEN !== SHARED_SECRET) {
+  console.error("Access Denied: Unauthorized connection. This MCP server is configured for internal chatbot use only.");
+  process.exit(1);
+}
+
 // Configurable User ID context
 const USER_ID = process.env.DAIRY_USER_ID ? parseInt(process.env.DAIRY_USER_ID, 10) : 1;
 
@@ -358,24 +367,6 @@ server.tool(
   }
 );
 
-server.tool(
-  "deleteUser",
-  "Delete a user account by ID from the database.",
-  {
-    id: z.number().describe("The ID of the user to delete.")
-  },
-  async (args) => {
-    try {
-      const result = await executeQuery("DELETE FROM users WHERE id = ?", [args.id]);
-      if (result.affectedRows === 0) {
-        throw new Error(`User with ID ${args.id} was not found.`);
-      }
-      return { content: [{ type: "text", text: `Successfully deleted user with ID: ${args.id}` }] };
-    } catch (e) {
-      return { content: [{ type: "text", text: `Error deleting user: ${e.message}` }], isError: true };
-    }
-  }
-);
 
 server.tool(
   "edit_customer",
@@ -618,6 +609,179 @@ server.tool(
       return { content: [{ type: "text", text: `Bill ID ${args.billId} updated successfully (Paid Amount: ₹${args.paidAmount}, Status: ${args.status}). Customer ID ${bill.customerId} profile opening balance synced to ₹${remaining}.` }] };
     } catch (e) {
       return { content: [{ type: "text", text: `Error updating bill payment: ${e.message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  "update_delivery_by_date",
+  "Update morning or evening delivery quantities for a customer on a specific date. If no entry exists for that date, a new one is created using the customer's default quantities as fallback.",
+  {
+    customerName: z.string().describe("Name of the customer (e.g. Rohan Sharma)."),
+    date: z.string().describe("Delivery date in YYYY-MM-DD format."),
+    morningQuantity: z.number().optional().describe("New morning quantity in Liters (optional)."),
+    eveningQuantity: z.number().optional().describe("New evening quantity in Liters (optional).")
+  },
+  async (args) => {
+    try {
+      const custs = await executeQuery(
+        "SELECT id, itemId, name, morningQuantity, eveningQuantity FROM customers WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
+        [`%${args.customerName}%`, USER_ID]
+      );
+      if (!custs || custs.length === 0) {
+        throw new Error(`Customer matching name "${args.customerName}" not found.`);
+      }
+      const cust = custs[0];
+      let pricePerUnit = 0;
+      if (cust.itemId) {
+        const items = await executeQuery("SELECT pricePerUnit FROM default_dairy_items WHERE id = ? LIMIT 1", [cust.itemId]);
+        if (items && items.length > 0) {
+          pricePerUnit = Number(items[0].pricePerUnit);
+        }
+      }
+
+      // Check if transaction already exists for this date
+      const existing = await executeQuery(
+        "SELECT id, morningQuantity, eveningQuantity FROM transactions WHERE customerId = ? AND date = ? LIMIT 1",
+        [cust.id, args.date]
+      );
+
+      let finalMorning = 0;
+      let finalEvening = 0;
+
+      if (existing && existing.length > 0) {
+        // Update existing record
+        const record = existing[0];
+        finalMorning = args.morningQuantity !== undefined ? args.morningQuantity : Number(record.morningQuantity);
+        finalEvening = args.eveningQuantity !== undefined ? args.eveningQuantity : Number(record.eveningQuantity);
+        const totalQty = finalMorning + finalEvening;
+        const totalCost = totalQty * pricePerUnit;
+
+        await executeQuery(
+          "UPDATE transactions SET morningQuantity = ?, eveningQuantity = ?, totalPrice = ?, pricePerUnit = ? WHERE id = ?",
+          [finalMorning, finalEvening, totalCost, pricePerUnit, record.id]
+        );
+      } else {
+        // Create new record
+        finalMorning = args.morningQuantity !== undefined ? args.morningQuantity : Number(cust.morningQuantity);
+        finalEvening = args.eveningQuantity !== undefined ? args.eveningQuantity : Number(cust.eveningQuantity);
+        const totalQty = finalMorning + finalEvening;
+        const totalCost = totalQty * pricePerUnit;
+
+        await executeQuery(`
+          INSERT INTO transactions (userId, customerId, itemId, isDefaultItem, date, morningQuantity, eveningQuantity, totalPrice, pricePerUnit)
+          VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?)
+        `, [
+          USER_ID,
+          cust.id,
+          cust.itemId,
+          args.date,
+          finalMorning,
+          finalEvening,
+          totalCost,
+          pricePerUnit
+        ]);
+      }
+
+      return { content: [{ type: "text", text: `Successfully updated delivery for ${cust.name} on ${args.date} to Morning: ${finalMorning}L, Evening: ${finalEvening}L.` }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: `Error updating delivery: ${e.message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  "bulk_update_deliveries",
+  "Update morning or evening delivery quantities for a customer across a range of dates (inclusive).",
+  {
+    customerName: z.string().describe("Name of the customer (e.g. Rohan Sharma)."),
+    startDate: z.string().describe("Start date in YYYY-MM-DD format."),
+    endDate: z.string().describe("End date in YYYY-MM-DD format."),
+    morningQuantity: z.number().optional().describe("New morning quantity in Liters (optional)."),
+    eveningQuantity: z.number().optional().describe("New evening quantity in Liters (optional).")
+  },
+  async (args) => {
+    try {
+      const custs = await executeQuery(
+        "SELECT id, itemId, name, morningQuantity, eveningQuantity FROM customers WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
+        [`%${args.customerName}%`, USER_ID]
+      );
+      if (!custs || custs.length === 0) {
+        throw new Error(`Customer matching name "${args.customerName}" not found.`);
+      }
+      const cust = custs[0];
+      let pricePerUnit = 0;
+      if (cust.itemId) {
+        const items = await executeQuery("SELECT pricePerUnit FROM default_dairy_items WHERE id = ? LIMIT 1", [cust.itemId]);
+        if (items && items.length > 0) {
+          pricePerUnit = Number(items[0].pricePerUnit);
+        }
+      }
+
+      const start = new Date(args.startDate + "T00:00:00");
+      const end = new Date(args.endDate + "T00:00:00");
+      
+      if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
+        throw new Error("Invalid date range specified.");
+      }
+
+      let current = new Date(start);
+      let updatedCount = 0;
+
+      while (current <= end) {
+        const year = current.getFullYear();
+        const month = String(current.getMonth() + 1).padStart(2, '0');
+        const day = String(current.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+
+        // Check existing
+        const existing = await executeQuery(
+          "SELECT id, morningQuantity, eveningQuantity FROM transactions WHERE customerId = ? AND date = ? LIMIT 1",
+          [cust.id, dateStr]
+        );
+
+        let finalMorning = 0;
+        let finalEvening = 0;
+
+        if (existing && existing.length > 0) {
+          const record = existing[0];
+          finalMorning = args.morningQuantity !== undefined ? args.morningQuantity : Number(record.morningQuantity);
+          finalEvening = args.eveningQuantity !== undefined ? args.eveningQuantity : Number(record.eveningQuantity);
+          const totalQty = finalMorning + finalEvening;
+          const totalCost = totalQty * pricePerUnit;
+
+          await executeQuery(
+            "UPDATE transactions SET morningQuantity = ?, eveningQuantity = ?, totalPrice = ?, pricePerUnit = ? WHERE id = ?",
+            [finalMorning, finalEvening, totalCost, pricePerUnit, record.id]
+          );
+        } else {
+          finalMorning = args.morningQuantity !== undefined ? args.morningQuantity : Number(cust.morningQuantity);
+          finalEvening = args.eveningQuantity !== undefined ? args.eveningQuantity : Number(cust.eveningQuantity);
+          const totalQty = finalMorning + finalEvening;
+          const totalCost = totalQty * pricePerUnit;
+
+          await executeQuery(`
+            INSERT INTO transactions (userId, customerId, itemId, isDefaultItem, date, morningQuantity, eveningQuantity, totalPrice, pricePerUnit)
+            VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?)
+          `, [
+            USER_ID,
+            cust.id,
+            cust.itemId,
+            dateStr,
+            finalMorning,
+            finalEvening,
+            totalCost,
+            pricePerUnit
+          ]);
+        }
+
+        updatedCount++;
+        current.setDate(current.getDate() + 1);
+      }
+
+      return { content: [{ type: "text", text: `Successfully updated ${updatedCount} deliveries for ${cust.name} from ${args.startDate} to ${args.endDate}.` }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: `Error in bulk update: ${e.message}` }], isError: true };
     }
   }
 );

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import DairyLogo from "@/components/DairyLogo";
+import FormattedMessage from "@/components/FormattedMessage";
 
 interface AdminLayoutClientProps {
   children: React.ReactNode;
@@ -70,6 +71,7 @@ export default function AdminLayoutClient({
       }
 
       setMessages((prev) => [...prev, { role: "model", content: data.content }]);
+      window.dispatchEvent(new CustomEvent("dairy-db-update"));
     } catch (err: any) {
       console.error(err);
       setMessages((prev) => [
@@ -250,7 +252,7 @@ export default function AdminLayoutClient({
               animation: chatSlideUp 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
             }
           `}</style>
-          <div className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-3rem)] h-[520px] bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-3xl flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-50 overflow-hidden text-slate-100 animate-chat-open origin-bottom-right no-print">
+          <div className="fixed bottom-24 right-6 w-96 md:w-[440px] max-w-[calc(100vw-3rem)] h-[520px] bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-3xl flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-50 overflow-hidden text-slate-100 animate-chat-open origin-bottom-right no-print">
             {/* Header */}
             <div className="p-4 bg-gradient-to-r from-slate-900/95 via-slate-900/98 to-slate-950/95 border-b border-white/5 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -295,15 +297,15 @@ export default function AdminLayoutClient({
                     </span>
                   )}
                   <div
-                    className={`px-4 py-3 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap shadow-sm ${
+                    className={`px-4 py-3 rounded-2xl text-xs leading-relaxed shadow-sm ${
                       m.role === "user"
-                        ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-br-none shadow-md shadow-emerald-500/10 font-medium"
+                        ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-br-none shadow-md shadow-emerald-500/10 font-medium whitespace-pre-wrap"
                         : m.role === "system"
-                        ? "bg-rose-500/10 border border-rose-500/20 text-rose-300 font-mono rounded-bl-none"
+                        ? "bg-rose-500/10 border border-rose-500/20 text-rose-300 font-mono rounded-bl-none whitespace-pre-wrap"
                         : "bg-white/5 border border-white/10 text-slate-100 rounded-bl-none backdrop-blur-sm"
                     }`}
                   >
-                    {m.content}
+                    <FormattedMessage content={m.content} role={m.role} />
                   </div>
                 </div>
               ))}

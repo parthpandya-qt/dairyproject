@@ -75,6 +75,14 @@ function ReceiptsContent() {
   useEffect(() => {
     setPaymentDate(getTodayDateString());
     loadData();
+
+    const handleDbUpdate = () => {
+      loadData();
+    };
+    window.addEventListener("dairy-db-update", handleDbUpdate);
+    return () => {
+      window.removeEventListener("dairy-db-update", handleDbUpdate);
+    };
   }, []);
 
   // Handle query params from routing

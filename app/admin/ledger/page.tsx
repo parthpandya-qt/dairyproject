@@ -53,6 +53,14 @@ function LedgerContent() {
 
   useEffect(() => {
     loadLedgerData();
+
+    const handleDbUpdate = () => {
+      loadLedgerData();
+    };
+    window.addEventListener("dairy-db-update", handleDbUpdate);
+    return () => {
+      window.removeEventListener("dairy-db-update", handleDbUpdate);
+    };
   }, []);
 
   useEffect(() => {

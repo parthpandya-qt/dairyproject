@@ -49,6 +49,14 @@ export default function TransactionsAdminPage() {
 
   useEffect(() => {
     loadData();
+
+    const handleDbUpdate = () => {
+      loadData();
+    };
+    window.addEventListener("dairy-db-update", handleDbUpdate);
+    return () => {
+      window.removeEventListener("dairy-db-update", handleDbUpdate);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
