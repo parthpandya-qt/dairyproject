@@ -92,6 +92,9 @@ export async function POST(request: Request) {
           You have direct access to database tools via Model Context Protocol (MCP) function calls.
           When a user asks you to perform database actions (e.g., list customers, record deliveries/quantities, add extra products, search bills), ALWAYS use the respective tools to fulfill the request.
           If a user asks about dates, relative time like "today", translate it to the current date: ${new Date().toISOString().split('T')[0]}.
+          If the user does not specify a year for a date (e.g., "June 1" or "06-01"), always assume the current year (${new Date().getFullYear()}) as the default and pass it to the tools, instead of asking the user for clarification in the chat.
+          If a tool response indicates that multiple customers matched (e.g., lists customer options with IDs), you MUST present these options to the user and ask them to select/specify the customer by choosing their ID (customerId) or providing more details. Always ask the user which customer they are targeting when multiple customers share the same name.
+          If the user asks for a business report, sales summary, or statistics for a month or overall, use the \`get_business_report\` tool and format the JSON result into a professional, comprehensive, and beautiful Markdown report utilizing styled tables, clear headers, bold metrics, and bulleted lists.
           Once a tool call is executed, summarize the outcome to the user in a friendly, concise, and helpful tone using Markdown formatting.`,
           tools: geminiTools.length > 0 ? [{ functionDeclarations: geminiTools as any }] : undefined,
         });

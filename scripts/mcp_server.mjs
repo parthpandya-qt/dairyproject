@@ -46,6 +46,75 @@ async function executeQuery(sql, params) {
   return results;
 }
 
+function parseDateWithDefaultYear(dateStr) {
+  if (!dateStr) return new Date().toISOString().split('T')[0];
+  
+  const currentYear = new Date().getFullYear();
+  let trimmed = String(dateStr).trim();
+  
+  // Check if it's already YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed;
+  }
+  
+  // Check if it's MM-DD or MM/DD (e.g. 06-05 or 06/05)
+  const mmDdRegex = /^(\d{1,2})[-/](\d{1,2})$/;
+  const match = trimmed.match(mmDdRegex);
+  if (match) {
+    const month = match[1].padStart(2, '0');
+    const day = match[2].padStart(2, '0');
+    return `${currentYear}-${month}-${day}`;
+  }
+  
+  // Fallback to JS Date parsing
+  const parsed = new Date(trimmed);
+  if (!isNaN(parsed.getTime())) {
+    const yearMatch = trimmed.match(/\b\d{4}\b/);
+    let finalYear = currentYear;
+    if (yearMatch) {
+      finalYear = parseInt(yearMatch[0], 10);
+    }
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const day = String(parsed.getDate()).padStart(2, '0');
+    return `${finalYear}-${month}-${day}`;
+  }
+  
+  return new Date().toISOString().split('T')[0];
+}
+
+async function resolveCustomer(customerName, customerId) {
+  if (customerId !== undefined && customerId !== null) {
+    const custs = await executeQuery(
+      "SELECT id, itemId, isDefaultItem, name, phone, address, morningQuantity, eveningQuantity FROM customers WHERE id = ? AND userId = ? AND deletedAt IS NULL",
+      [customerId, USER_ID]
+    );
+    if (!custs || custs.length === 0) {
+      throw new Error(`Customer with ID ${customerId} not found.`);
+    }
+    return custs[0];
+  }
+
+  if (!customerName) {
+    throw new Error("Either customerName or customerId must be provided.");
+  }
+
+  const custs = await executeQuery(
+    "SELECT id, itemId, isDefaultItem, name, phone, address, morningQuantity, eveningQuantity FROM customers WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL",
+    [`%${customerName}%`, USER_ID]
+  );
+
+  if (!custs || custs.length === 0) {
+    throw new Error(`Customer matching name "${customerName}" not found.`);
+  }
+
+  if (custs.length > 1) {
+    const list = custs.map((c, i) => `${i + 1}. [ID: ${c.id}] Name: ${c.name}, Phone: ${c.phone || "N/A"}, Address: ${c.address || "N/A"}`).join("\n");
+    throw new Error(`MULTIPLE_CUSTOMERS_FOUND: Multiple customers match the name "${customerName}". Please specify the customer by database ID (customerId):\n${list}`);
+  }
+
+  return custs[0];
+}
+
 // Instantiate the MCP Server
 const server = new McpServer({
   name: "dairy-mcp-server",
@@ -133,21 +202,15 @@ server.tool(
   "add_transaction",
   "Record or overwrite a daily default allocation delivery (milk quantity) for a customer on a specific date.",
   {
-    customerName: z.string().describe("Name of the customer (e.g. Rohan Sharma)."),
+    customerName: z.string().optional().describe("Name of the customer (e.g. Rohan Sharma)."),
+    customerId: z.number().optional().describe("Optional database ID of the customer (used to disambiguate same names)."),
     date: z.string().optional().describe("Delivery date in YYYY-MM-DD format (leave empty for today)."),
     morningQuantity: z.number().describe("Morning milk quantity in Liters."),
     eveningQuantity: z.number().describe("Evening milk quantity in Liters.")
   },
   async (args) => {
     try {
-      const custs = await executeQuery(
-        "SELECT id, itemId, isDefaultItem, name FROM customers WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
-        [`%${args.customerName}%`, USER_ID]
-      );
-      if (!custs || custs.length === 0) {
-        throw new Error(`Customer matching name "${args.customerName}" not found.`);
-      }
-      const cust = custs[0];
+      const cust = await resolveCustomer(args.customerName, args.customerId);
       let pricePerUnit = 0;
       if (cust.itemId) {
         const queryStr = cust.isDefaultItem 
@@ -191,7 +254,243 @@ server.tool(
       }
       return { content: [{ type: "text", text: `Logged daily delivery for ${cust.name} on ${targetDate}.` }] };
     } catch (e) {
+      if (e.message.startsWith("MULTIPLE_CUSTOMERS_FOUND:")) {
+        return { content: [{ type: "text", text: e.message.replace("MULTIPLE_CUSTOMERS_FOUND: ", "") }] };
+      }
       return { content: [{ type: "text", text: `Error adding transaction: ${e.message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  "bulk_order",
+  "Generate daily delivery transactions for a date range (inclusive), with optional dates to exclude and quantity overrides.",
+  {
+    customerName: z.string().optional().describe("Name of the customer. Use 'all' or leave empty to apply to all active customers."),
+    customerId: z.number().optional().describe("Optional database ID of the customer (used to disambiguate same names)."),
+    startDate: z.string().describe("Start date (YYYY-MM-DD or MM-DD or Month DD). If year is omitted, the current year is assumed."),
+    endDate: z.string().describe("End date (inclusive). If year is omitted, the current year is assumed."),
+    excludeDates: z.array(z.string()).optional().describe("List of specific dates to exclude from the bulk order (e.g., ['06-05', '06-12'])."),
+    morningQuantity: z.number().optional().describe("Optional override morning quantity in Liters."),
+    eveningQuantity: z.number().optional().describe("Optional override evening quantity in Liters.")
+  },
+  async (args) => {
+    try {
+      const start = parseDateWithDefaultYear(args.startDate);
+      const end = parseDateWithDefaultYear(args.endDate);
+      const excluded = (args.excludeDates || []).map(d => parseDateWithDefaultYear(d));
+
+      const startParts = start.split('-');
+      const endParts = end.split('-');
+      
+      const startDateObj = new Date(parseInt(startParts[0], 10), parseInt(startParts[1], 10) - 1, parseInt(startParts[2], 10));
+      const endDateObj = new Date(parseInt(endParts[0], 10), parseInt(endParts[1], 10) - 1, parseInt(endParts[2], 10));
+
+      if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+        throw new Error("Invalid start or end date format.");
+      }
+
+      if (startDateObj > endDateObj) {
+        throw new Error("Start date cannot be after end date.");
+      }
+
+      // Resolve customers
+      let customersToProcess = [];
+      const hasSpecificCustomer = (args.customerName && args.customerName.toLowerCase() !== "all" && args.customerName.trim() !== "") || (args.customerId !== undefined && args.customerId !== null);
+      
+      if (hasSpecificCustomer) {
+        const cust = await resolveCustomer(args.customerName, args.customerId);
+        customersToProcess = [cust];
+      } else {
+        const custs = await executeQuery(
+          "SELECT id, itemId, isDefaultItem, name, morningQuantity, eveningQuantity FROM customers WHERE userId = ? AND deletedAt IS NULL",
+          [USER_ID]
+        );
+        customersToProcess = custs || [];
+      }
+
+      if (customersToProcess.length === 0) {
+        return { content: [{ type: "text", text: "No active customers found to process." }] };
+      }
+
+      // Get dates in between
+      const datesToProcess = [];
+      let tempDate = new Date(startDateObj);
+      while (tempDate <= endDateObj) {
+        const year = tempDate.getFullYear();
+        const month = String(tempDate.getMonth() + 1).padStart(2, '0');
+        const day = String(tempDate.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        if (!excluded.includes(dateStr)) {
+          datesToProcess.push(dateStr);
+        }
+        tempDate.setDate(tempDate.getDate() + 1);
+      }
+
+      if (datesToProcess.length === 0) {
+        return { content: [{ type: "text", text: "All dates in the specified range were excluded." }] };
+      }
+
+      let insertCount = 0;
+      let updateCount = 0;
+
+      // Loop through customers
+      for (const cust of customersToProcess) {
+        let pricePerUnit = 0;
+        if (cust.itemId) {
+          const queryStr = cust.isDefaultItem 
+            ? "SELECT pricePerUnit FROM default_dairy_items WHERE id = ? LIMIT 1"
+            : "SELECT pricePerUnit FROM dairy_items WHERE id = ? AND userId = ? LIMIT 1";
+          const params = cust.isDefaultItem ? [cust.itemId] : [cust.itemId, USER_ID];
+          const items = await executeQuery(queryStr, params);
+          if (items && items.length > 0) {
+            pricePerUnit = Number(items[0].pricePerUnit);
+          }
+        }
+
+        const mQty = args.morningQuantity !== undefined ? args.morningQuantity : Number(cust.morningQuantity || 0);
+        const eQty = args.eveningQuantity !== undefined ? args.eveningQuantity : Number(cust.eveningQuantity || 0);
+        const totalQty = mQty + eQty;
+        const totalCost = totalQty * pricePerUnit;
+
+        // Loop through dates
+        for (const targetDate of datesToProcess) {
+          const existing = await executeQuery(
+            "SELECT id FROM transactions WHERE customerId = ? AND date = ? LIMIT 1",
+            [cust.id, targetDate]
+          );
+          if (existing && existing.length > 0) {
+            await executeQuery(
+              "UPDATE transactions SET morningQuantity = ?, eveningQuantity = ?, totalPrice = ?, pricePerUnit = ? WHERE id = ?",
+              [mQty, eQty, totalCost, pricePerUnit, existing[0].id]
+            );
+            updateCount++;
+          } else {
+            await executeQuery(`
+              INSERT INTO transactions (userId, customerId, itemId, isDefaultItem, date, morningQuantity, eveningQuantity, totalPrice, pricePerUnit)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [
+              USER_ID,
+              cust.id,
+              cust.itemId,
+              cust.isDefaultItem,
+              targetDate,
+              mQty,
+              eQty,
+              totalCost,
+              pricePerUnit
+            ]);
+            insertCount++;
+          }
+        }
+      }
+
+      const hasSpecificCustomerResolved = hasSpecificCustomer && customersToProcess.length > 0;
+      const custLabel = hasSpecificCustomerResolved ? `customer "${customersToProcess[0].name}"` : `${customersToProcess.length} customers`;
+      return {
+        content: [{
+          type: "text",
+          text: `Successfully processed bulk orders for ${custLabel} from ${start} to ${end}.
+- Dates processed: ${datesToProcess.length} (excluded ${excluded.length} dates)
+- Created: ${insertCount} transactions
+- Updated: ${updateCount} transactions`
+        }]
+      };
+
+    } catch (e) {
+      if (e.message.startsWith("MULTIPLE_CUSTOMERS_FOUND:")) {
+        return { content: [{ type: "text", text: e.message.replace("MULTIPLE_CUSTOMERS_FOUND: ", "") }] };
+      }
+      return { content: [{ type: "text", text: `Error executing bulk_order: ${e.message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  "bulk_entries_for_customer",
+  "Add multiple custom daily entries (dates, quantities) for a specific customer in a single operation.",
+  {
+    customerName: z.string().optional().describe("Name of the customer (e.g. Rohan Sharma)."),
+    customerId: z.number().optional().describe("Optional database ID of the customer (used to disambiguate same names)."),
+    entries: z.array(
+      z.object({
+        date: z.string().describe("Delivery date (e.g. '06-01' or '2026-06-01'). If year is omitted, the current year is assumed."),
+        morningQuantity: z.number().optional().describe("Morning quantity in Liters. Defaults to customer's default morning quantity."),
+        eveningQuantity: z.number().optional().describe("Evening quantity in Liters. Defaults to customer's default evening quantity.")
+      })
+    ).describe("List of daily entries to record.")
+  },
+  async (args) => {
+    try {
+      const cust = await resolveCustomer(args.customerName, args.customerId);
+      
+      let pricePerUnit = 0;
+      if (cust.itemId) {
+        const queryStr = cust.isDefaultItem 
+          ? "SELECT pricePerUnit FROM default_dairy_items WHERE id = ? LIMIT 1"
+          : "SELECT pricePerUnit FROM dairy_items WHERE id = ? AND userId = ? LIMIT 1";
+        const params = cust.isDefaultItem ? [cust.itemId] : [cust.itemId, USER_ID];
+        const items = await executeQuery(queryStr, params);
+        if (items && items.length > 0) {
+          pricePerUnit = Number(items[0].pricePerUnit);
+        }
+      }
+
+      let created = 0;
+      let updated = 0;
+
+      for (const entry of args.entries) {
+        const targetDate = parseDateWithDefaultYear(entry.date);
+        const mQty = entry.morningQuantity !== undefined ? entry.morningQuantity : Number(cust.morningQuantity || 0);
+        const eQty = entry.eveningQuantity !== undefined ? entry.eveningQuantity : Number(cust.eveningQuantity || 0);
+        const totalQty = mQty + eQty;
+        const totalCost = totalQty * pricePerUnit;
+
+        const existing = await executeQuery(
+          "SELECT id FROM transactions WHERE customerId = ? AND date = ? LIMIT 1",
+          [cust.id, targetDate]
+        );
+
+        if (existing && existing.length > 0) {
+          await executeQuery(
+            "UPDATE transactions SET morningQuantity = ?, eveningQuantity = ?, totalPrice = ?, pricePerUnit = ? WHERE id = ?",
+            [mQty, eQty, totalCost, pricePerUnit, existing[0].id]
+          );
+          updated++;
+        } else {
+          await executeQuery(`
+            INSERT INTO transactions (userId, customerId, itemId, isDefaultItem, date, morningQuantity, eveningQuantity, totalPrice, pricePerUnit)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `, [
+            USER_ID,
+            cust.id,
+            cust.itemId,
+            cust.isDefaultItem,
+            targetDate,
+            mQty,
+            eQty,
+            totalCost,
+            pricePerUnit
+          ]);
+          created++;
+        }
+      }
+
+      return {
+        content: [{
+          type: "text",
+          text: `Recorded bulk entries for customer "${cust.name}":
+- Total entries requested: ${args.entries.length}
+- Created: ${created} transactions
+- Updated: ${updated} transactions`
+        }]
+      };
+
+    } catch (e) {
+      if (e.message.startsWith("MULTIPLE_CUSTOMERS_FOUND:")) {
+        return { content: [{ type: "text", text: e.message.replace("MULTIPLE_CUSTOMERS_FOUND: ", "") }] };
+      }
+      return { content: [{ type: "text", text: `Error executing bulk_entries_for_customer: ${e.message}` }], isError: true };
     }
   }
 );
@@ -200,7 +499,8 @@ server.tool(
   "add_extra_item",
   "Log an extra product delivery (like Fresh Paneer, Pure Ghee, Curd, Buttermilk) for a customer.",
   {
-    customerName: z.string().describe("Name of the customer (e.g. Rohan Sharma)."),
+    customerName: z.string().optional().describe("Name of the customer (e.g. Rohan Sharma)."),
+    customerId: z.number().optional().describe("Optional database ID of the customer (used to disambiguate same names)."),
     date: z.string().optional().describe("Delivery date in YYYY-MM-DD format (leave empty for today)."),
     extraProductName: z.string().describe("Name of the extra product (e.g. Fresh Paneer, Pure Ghee, Curd)."),
     quantity: z.number().describe("Delivered product quantity (e.g. 0.5 for half kg, 1.0, 2.0)."),
@@ -208,14 +508,7 @@ server.tool(
   },
   async (args) => {
     try {
-      const custs = await executeQuery(
-        "SELECT id, name FROM customers WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
-        [`%${args.customerName}%`, USER_ID]
-      );
-      if (!custs || custs.length === 0) {
-        throw new Error(`Customer matching name "${args.customerName}" not found.`);
-      }
-      const cust = custs[0];
+      const cust = await resolveCustomer(args.customerName, args.customerId);
       const targetDate = args.date || new Date().toISOString().split('T')[0];
 
       // Resolve product price
@@ -261,6 +554,9 @@ server.tool(
       ]);
       return { content: [{ type: "text", text: `Recorded extra delivery of ${args.quantity}x ${finalItemName} (₹${rate}/unit) for ${cust.name} on ${targetDate}.` }] };
     } catch (e) {
+      if (e.message.startsWith("MULTIPLE_CUSTOMERS_FOUND:")) {
+        return { content: [{ type: "text", text: e.message.replace("MULTIPLE_CUSTOMERS_FOUND: ", "") }] };
+      }
       return { content: [{ type: "text", text: `Error adding extra item: ${e.message}` }], isError: true };
     }
   }
@@ -270,19 +566,13 @@ server.tool(
   "get_customer_ledger",
   "Retrieve a customer's detailed monthly deliveries ledger (default transactions and extra items).",
   {
-    customerName: z.string().describe("Name of the customer."),
+    customerName: z.string().optional().describe("Name of the customer."),
+    customerId: z.number().optional().describe("Optional database ID of the customer (used to disambiguate same names)."),
     monthKey: z.string().describe("Billing month in YYYY-MM format, e.g. '2026-06'.")
   },
   async (args) => {
     try {
-      const custs = await executeQuery(
-        "SELECT id, name, phone, address, openingBalance FROM customers WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
-        [`%${args.customerName}%`, USER_ID]
-      );
-      if (!custs || custs.length === 0) {
-        throw new Error(`Customer matching name "${args.customerName}" not found.`);
-      }
-      const cust = custs[0];
+      const cust = await resolveCustomer(args.customerName, args.customerId);
       const txs = await executeQuery(`
         SELECT t.*, 
                COALESCE(di.name, ai.name) AS itemName, 
@@ -311,6 +601,9 @@ server.tool(
         }]
       };
     } catch (e) {
+      if (e.message.startsWith("MULTIPLE_CUSTOMERS_FOUND:")) {
+        return { content: [{ type: "text", text: e.message.replace("MULTIPLE_CUSTOMERS_FOUND: ", "") }] };
+      }
       return { content: [{ type: "text", text: `Error fetching ledger: ${e.message}` }], isError: true };
     }
   }
@@ -653,21 +946,15 @@ server.tool(
   "update_delivery_by_date",
   "Update morning or evening delivery quantities for a customer on a specific date. If no entry exists for that date, a new one is created using the customer's default quantities as fallback.",
   {
-    customerName: z.string().describe("Name of the customer (e.g. Rohan Sharma)."),
+    customerName: z.string().optional().describe("Name of the customer (e.g. Rohan Sharma)."),
+    customerId: z.number().optional().describe("Optional database ID of the customer (used to disambiguate same names)."),
     date: z.string().describe("Delivery date in YYYY-MM-DD format."),
     morningQuantity: z.number().optional().describe("New morning quantity in Liters (optional)."),
     eveningQuantity: z.number().optional().describe("New evening quantity in Liters (optional).")
   },
   async (args) => {
     try {
-      const custs = await executeQuery(
-        "SELECT id, itemId, isDefaultItem, name, morningQuantity, eveningQuantity FROM customers WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
-        [`%${args.customerName}%`, USER_ID]
-      );
-      if (!custs || custs.length === 0) {
-        throw new Error(`Customer matching name "${args.customerName}" not found.`);
-      }
-      const cust = custs[0];
+      const cust = await resolveCustomer(args.customerName, args.customerId);
       let pricePerUnit = 0;
       if (cust.itemId) {
         const queryStr = cust.isDefaultItem 
@@ -726,6 +1013,9 @@ server.tool(
 
       return { content: [{ type: "text", text: `Successfully updated delivery for ${cust.name} on ${args.date} to Morning: ${finalMorning}L, Evening: ${finalEvening}L.` }] };
     } catch (e) {
+      if (e.message.startsWith("MULTIPLE_CUSTOMERS_FOUND:")) {
+        return { content: [{ type: "text", text: e.message.replace("MULTIPLE_CUSTOMERS_FOUND: ", "") }] };
+      }
       return { content: [{ type: "text", text: `Error updating delivery: ${e.message}` }], isError: true };
     }
   }
@@ -735,7 +1025,8 @@ server.tool(
   "bulk_update_deliveries",
   "Update morning or evening delivery quantities for a customer across a range of dates (inclusive).",
   {
-    customerName: z.string().describe("Name of the customer (e.g. Rohan Sharma)."),
+    customerName: z.string().optional().describe("Name of the customer (e.g. Rohan Sharma)."),
+    customerId: z.number().optional().describe("Optional database ID of the customer (used to disambiguate same names)."),
     startDate: z.string().describe("Start date in YYYY-MM-DD format."),
     endDate: z.string().describe("End date in YYYY-MM-DD format."),
     morningQuantity: z.number().optional().describe("New morning quantity in Liters (optional)."),
@@ -743,14 +1034,7 @@ server.tool(
   },
   async (args) => {
     try {
-      const custs = await executeQuery(
-        "SELECT id, itemId, isDefaultItem, name, morningQuantity, eveningQuantity FROM customers WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
-        [`%${args.customerName}%`, USER_ID]
-      );
-      if (!custs || custs.length === 0) {
-        throw new Error(`Customer matching name "${args.customerName}" not found.`);
-      }
-      const cust = custs[0];
+      const cust = await resolveCustomer(args.customerName, args.customerId);
       let pricePerUnit = 0;
       if (cust.itemId) {
         const queryStr = cust.isDefaultItem 
@@ -827,7 +1111,96 @@ server.tool(
 
       return { content: [{ type: "text", text: `Successfully updated ${updatedCount} deliveries for ${cust.name} from ${args.startDate} to ${args.endDate}.` }] };
     } catch (e) {
+      if (e.message.startsWith("MULTIPLE_CUSTOMERS_FOUND:")) {
+        return { content: [{ type: "text", text: e.message.replace("MULTIPLE_CUSTOMERS_FOUND: ", "") }] };
+      }
       return { content: [{ type: "text", text: `Error in bulk update: ${e.message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  "get_business_report",
+  "Retrieve a comprehensive business report summarizing customers, deliveries, extra items, bills, and outstanding dues for a specific month (e.g., '2026-06'). Defaults to the current month if not specified.",
+  {
+    monthKey: z.string().optional().describe("The billing month in YYYY-MM format (e.g., '2026-06'). Defaults to current month.")
+  },
+  async (args) => {
+    try {
+      const monthFilter = args.monthKey || new Date().toISOString().substring(0, 7);
+      const datePrefix = `${monthFilter}%`;
+
+      // 1. Customer summary
+      const custSummaryRows = await executeQuery(
+        "SELECT COUNT(*) AS activeCustomersCount, COALESCE(SUM(openingBalance), 0) AS totalOutstandingBalances FROM customers WHERE userId = ? AND deletedAt IS NULL",
+        [USER_ID]
+      );
+      const custSummary = custSummaryRows[0];
+
+      // 2. Transactions (delivery) summary
+      const txSummaryRows = await executeQuery(
+        "SELECT COALESCE(SUM(morningQuantity + eveningQuantity), 0) AS totalLiters, COALESCE(SUM(totalPrice), 0) AS transactionsCost FROM transactions WHERE userId = ? AND date LIKE ?",
+        [USER_ID, datePrefix]
+      );
+      const txSummary = txSummaryRows[0];
+
+      // 3. Extra items summary
+      const extraSummaryRows = await executeQuery(
+        "SELECT COALESCE(SUM(totalPrice), 0) AS extraItemsCost FROM extra_item WHERE userId = ? AND date LIKE ?",
+        [USER_ID, datePrefix]
+      );
+      const extraSummary = extraSummaryRows[0];
+
+      // 4. Bills summary
+      const billsSummaryRows = await executeQuery(
+        "SELECT COUNT(*) as billsCount, COALESCE(SUM(openingBalance), 0) AS billsOpeningBalance, COALESCE(SUM(deliveriesTotal), 0) AS billsDeliveriesTotal, COALESCE(SUM(totalAmount), 0) AS billsTotalAmount, COALESCE(SUM(paidAmount), 0) AS billsPaidAmount FROM bills WHERE userId = ? AND billingMonth = ?",
+        [USER_ID, monthFilter]
+      );
+      const billsSummary = billsSummaryRows[0];
+
+      // 5. Top 5 customers by sales for the month
+      const topCustomers = await executeQuery(
+        `SELECT c.id, c.name, c.phone,
+                COALESCE((SELECT SUM(totalPrice) FROM transactions t WHERE t.customerId = c.id AND t.date LIKE ?), 0) + 
+                COALESCE((SELECT SUM(totalPrice) FROM extra_item e WHERE e.customerId = c.id AND e.date LIKE ?), 0) AS totalSales 
+         FROM customers c 
+         WHERE c.userId = ? AND c.deletedAt IS NULL 
+         ORDER BY totalSales DESC 
+         LIMIT 5`,
+        [datePrefix, datePrefix, USER_ID]
+      );
+
+      const report = {
+        month: monthFilter,
+        customerSummary: {
+          activeCustomers: Number(custSummary.activeCustomersCount),
+          currentOutstandingBalances: Number(custSummary.totalOutstandingBalances)
+        },
+        deliverySummary: {
+          totalLitersDelivered: Number(txSummary.totalLiters),
+          deliveriesRevenue: Number(txSummary.transactionsCost)
+        },
+        extraItemsSummary: {
+          extraItemsRevenue: Number(extraSummary.extraItemsCost)
+        },
+        totalSalesRevenue: Number(txSummary.transactionsCost) + Number(extraSummary.extraItemsCost),
+        billingSummary: {
+          billsGenerated: Number(billsSummary.billsCount),
+          totalBilledAmount: Number(billsSummary.billsTotalAmount),
+          totalPaidAmount: Number(billsSummary.billsPaidAmount),
+          totalOutstandingUnpaidAmount: Number(billsSummary.billsTotalAmount) - Number(billsSummary.billsPaidAmount)
+        },
+        topCustomers: topCustomers.map(tc => ({
+          id: tc.id,
+          name: tc.name,
+          phone: tc.phone || "N/A",
+          salesAmount: Number(tc.totalSales)
+        }))
+      };
+
+      return { content: [{ type: "text", text: JSON.stringify(report, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: `Error generating report: ${e.message}` }], isError: true };
     }
   }
 );
