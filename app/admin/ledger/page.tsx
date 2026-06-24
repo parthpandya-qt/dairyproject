@@ -320,19 +320,24 @@ function LedgerContent() {
   return (
     <div className="max-w-7xl mx-auto space-y-8 text-black pb-12">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+      <div className="border-b border-slate-200/50 pb-6 select-none">
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+          <span className="p-2.5 bg-emerald-500/10 text-emerald-600 rounded-2xl inline-flex border border-emerald-500/20">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </span>
           Customer Ledger
         </h1>
-        <p className="text-xs text-slate-500 font-semibold mt-1">
+        <p className="text-xs sm:text-sm text-slate-455 font-semibold mt-2">
           Select customer and month to view and edit daily allocation quantities and extra products.
         </p>
       </div>
 
       {/* Global Toast Alerts Feedback */}
       {successMessage && (
-        <div className="p-4 bg-emerald-50 border border-emerald-150 text-emerald-800 rounded-2xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 animate-in fade-in duration-200">
-          <span className="p-1 bg-emerald-100 text-emerald-700 rounded-lg">
+        <div className="p-4 bg-emerald-50/60 border border-emerald-150 text-emerald-800 rounded-2xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 animate-in fade-in duration-200">
+          <span className="p-1 bg-emerald-100/80 text-emerald-700 rounded-lg">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
             </svg>
@@ -341,8 +346,8 @@ function LedgerContent() {
         </div>
       )}
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-150 text-rose-800 rounded-2xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 animate-in fade-in duration-200">
-          <span className="p-1 bg-rose-100 text-rose-700 rounded-lg">
+        <div className="p-4 bg-rose-50/60 border border-rose-150 text-rose-800 rounded-2xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 animate-in fade-in duration-200">
+          <span className="p-1 bg-rose-100/80 text-rose-700 rounded-lg">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -352,8 +357,8 @@ function LedgerContent() {
       )}
 
       {loading && customers.length === 0 ? (
-        <div className="p-20 text-center text-slate-455 text-xs font-semibold flex flex-col items-center justify-center gap-2">
-          <svg className="w-7 h-7 animate-spin text-slate-350" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="p-20 text-center text-slate-455 text-xs font-semibold flex flex-col items-center justify-center gap-2 select-none">
+          <svg className="w-7 h-7 animate-spin text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
           </svg>
           Loading statement logs...
@@ -361,7 +366,7 @@ function LedgerContent() {
       ) : (
         <>
           {/* Top Dropdown Selection Bar */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-5 no-print">
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.015)] grid grid-cols-1 md:grid-cols-2 gap-5 no-print">
             <div className="space-y-1.5">
               <label className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
                 Select Customer
@@ -374,7 +379,7 @@ function LedgerContent() {
                   setActiveCustomer(found || null);
                   setSelectedMonthFilter("all");
                 }}
-                className="w-full bg-slate-50 border border-slate-200 text-slate-955 font-bold text-xs rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition cursor-pointer"
+                className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold text-xs rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 shadow-sm transition cursor-pointer"
               >
                 <option value="">-- Choose Customer --</option>
                 {customers.map((c) => (
@@ -393,7 +398,7 @@ function LedgerContent() {
                 value={selectedMonthFilter}
                 disabled={!activeCustomer}
                 onChange={(e) => setSelectedMonthFilter(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 text-slate-955 font-bold text-xs rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold text-xs rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <option value="all">All Months</option>
                 {activeCustomer && getCustomerActiveMonths(activeCustomer).map((m) => (
@@ -409,10 +414,10 @@ function LedgerContent() {
           {activeCustomer ? (
             <div className="space-y-6">
               {/* Table 1: Default Allocations Ledger */}
-              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                <div className="p-5 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.015)] overflow-hidden">
+                <div className="p-5 bg-slate-50/40 border-b border-slate-100 flex justify-between items-center">
                   <h3 className="font-extrabold text-slate-800 text-sm tracking-tight flex items-center gap-2">
-                    <span className="p-1 bg-amber-500/10 text-amber-600 rounded-lg">
+                    <span className="p-1.5 bg-emerald-50 border border-emerald-500/10 text-emerald-600 rounded-lg">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                       </svg>
@@ -425,26 +430,26 @@ function LedgerContent() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-50/30">
-                        <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Date</th>
-                        <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Allocated Product</th>
-                        <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Morning Qty</th>
-                        <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Evening Qty</th>
+                        <th className="table-header-cell py-3.5 px-5">Date</th>
+                        <th className="table-header-cell py-3.5 px-5">Allocated Product</th>
+                        <th className="table-header-cell py-3.5 px-5">Morning Qty</th>
+                        <th className="table-header-cell py-3.5 px-5">Evening Qty</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {allocatedEntries.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="p-10 text-center text-slate-400 text-xs font-semibold">
+                          <td colSpan={4} className="p-10 text-center text-slate-400 text-xs font-semibold select-none">
                             No default allocation deliveries logged for the selected filters.
                           </td>
                         </tr>
                       ) : (
                         allocatedEntries.map((row) => (
-                          <tr key={row.id} className="hover:bg-slate-50/20 transition duration-100">
+                          <tr key={row.id} className="hover:bg-slate-50/15 transition duration-100">
                             <td className="py-3.5 px-5 text-xs font-bold text-slate-700 whitespace-nowrap">{row.date}</td>
-                            <td className="py-3.5 px-5 text-xs font-bold text-slate-850">{row.itemName}</td>
+                            <td className="py-3.5 px-5 text-xs font-bold text-slate-800">{row.itemName}</td>
                             <td className="py-3.5 px-5 text-xs text-slate-600 font-semibold">
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-2">
                                 <input
                                   type="number"
                                   step="0.01"
@@ -465,13 +470,13 @@ function LedgerContent() {
                                       },
                                     });
                                   }}
-                                  className="w-16 border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                                  className="h-8 border border-slate-200 rounded-lg px-2 w-16 text-slate-800 font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
                                 />
-                                <span className="text-[10px] text-slate-400 font-semibold">{row.itemUnit}</span>
+                                <span className="text-[10px] text-slate-400 font-bold select-none">{row.itemUnit}</span>
                               </div>
                             </td>
                             <td className="py-3.5 px-5 text-xs text-slate-600 font-semibold">
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-2">
                                 <input
                                   type="number"
                                   step="0.01"
@@ -492,9 +497,9 @@ function LedgerContent() {
                                       },
                                     });
                                   }}
-                                  className="w-16 border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                                  className="h-8 border border-slate-200 rounded-lg px-2 w-16 text-slate-800 font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
                                 />
-                                <span className="text-[10px] text-slate-400 font-semibold">{row.itemUnit}</span>
+                                <span className="text-[10px] text-slate-400 font-bold select-none">{row.itemUnit}</span>
                               </div>
                             </td>
                           </tr>
@@ -504,7 +509,7 @@ function LedgerContent() {
                   </table>
                 </div>
 
-                <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="p-4 bg-slate-50/40 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
                   {/* Summary info */}
                   {(() => {
                     const totalMorning = allocatedEntries.reduce((sum, r) => sum + Number(editedValues[r.id]?.morningQty || 0), 0);
@@ -513,10 +518,10 @@ function LedgerContent() {
                     const rate = allocatedEntries.find(r => r.isDefault)?.rate || activeCustomer.itemPrice || 0;
                     const defaultTotalBill = totalQty * rate;
 
-                    if (totalQty === 0) return null;
+                    if (totalQty === 0) return <div />;
 
                     return (
-                      <div className="text-xs font-bold text-slate-700 flex flex-wrap gap-x-6 gap-y-2">
+                      <div className="text-xs font-bold text-slate-700 flex flex-wrap gap-x-6 gap-y-2 select-none">
                         <div>
                           <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Morning</span>
                           <span className="text-slate-900">{totalMorning} {activeCustomer.unit || 'L'}</span>
@@ -531,7 +536,7 @@ function LedgerContent() {
                         </div>
                         <div>
                           <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Bill</span>
-                          <span className="text-blue-600 font-extrabold">
+                          <span className="text-emerald-600 font-black">
                             ₹{defaultTotalBill.toFixed(2)}
                           </span>
                         </div>
@@ -542,18 +547,18 @@ function LedgerContent() {
                   <button
                     onClick={() => handleSaveLedgerChanges("default")}
                     disabled={loading}
-                    className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-sm rounded-xl shadow-md hover:shadow active:scale-[0.98] cursor-pointer flex items-center gap-1.5 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    className="btn-primary text-xs tracking-wider uppercase font-extrabold px-6 py-2.5 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                   >
-                    Save Default Allocations changes
+                    Save Allocations
                   </button>
                 </div>
               </div>
 
               {/* Table 2: Extra Products Added Ledger */}
-              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                <div className="p-5 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.015)] overflow-hidden">
+                <div className="p-5 bg-slate-50/40 border-b border-slate-100 flex justify-between items-center">
                   <h3 className="font-extrabold text-slate-800 text-sm tracking-tight flex items-center gap-2">
-                    <span className="p-1 bg-blue-500/10 text-blue-600 rounded-lg">
+                    <span className="p-1.5 bg-emerald-50 border border-emerald-500/10 text-emerald-600 rounded-lg">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                       </svg>
@@ -566,24 +571,24 @@ function LedgerContent() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-50/30">
-                        <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Date</th>
-                        <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Extra Product Added</th>
-                        <th className="table-header-cell border-b border-slate-100 py-3.5 px-5 text-center">Extra Qty</th>
-                        <th className="table-header-cell border-b border-slate-100 py-3.5 px-5 text-right">Extra Price</th>
+                        <th className="table-header-cell py-3.5 px-5">Date</th>
+                        <th className="table-header-cell py-3.5 px-5">Extra Product Added</th>
+                        <th className="table-header-cell py-3.5 px-5 text-center">Extra Qty</th>
+                        <th className="table-header-cell py-3.5 px-5 text-right">Extra Price</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {extraEntries.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="p-10 text-center text-slate-400 text-xs font-semibold">
+                          <td colSpan={4} className="p-10 text-center text-slate-400 text-xs font-semibold select-none">
                             No extra product deliveries logged for the selected filters.
                           </td>
                         </tr>
                       ) : (
                         extraEntries.map((row) => (
-                          <tr key={row.id} className="hover:bg-slate-50/20 transition duration-100">
+                          <tr key={row.id} className="hover:bg-slate-50/15 transition duration-100">
                             <td className="py-3.5 px-5 text-xs font-bold text-slate-700 whitespace-nowrap">{row.date}</td>
-                            <td className="py-3.5 px-5 text-xs font-bold text-slate-850">{row.itemName}</td>
+                            <td className="py-3.5 px-5 text-xs font-bold text-slate-800">{row.itemName}</td>
                             <td className="py-3.5 px-5 text-center text-xs text-slate-600 font-semibold">
                               <input
                                 type="text"
@@ -601,12 +606,12 @@ function LedgerContent() {
                                     },
                                   }));
                                 }}
-                                className="w-16 text-center border border-slate-200 text-slate-905 font-bold text-xs rounded-lg p-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm bg-white"
+                                className="h-8 border border-slate-200 rounded-lg px-2 w-16 text-center text-slate-800 font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
                               />
                             </td>
-                            <td className="py-3.5 px-5 text-right text-xs font-black text-slate-855">
-                              <div className="flex justify-end items-center gap-1">
-                                <span className="text-slate-400 text-xs">₹</span>
+                            <td className="py-3.5 px-5 text-right text-xs font-black text-slate-800">
+                              <div className="flex justify-end items-center gap-1.5">
+                                <span className="text-slate-400 font-extrabold select-none">₹</span>
                                 <input
                                   type="text"
                                   value={editedValues[row.id]?.extraPrice || "0.00"}
@@ -619,7 +624,7 @@ function LedgerContent() {
                                       },
                                     }))
                                   }
-                                  className="w-20 text-right border border-slate-200 text-slate-905 font-bold text-xs rounded-lg p-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm bg-white"
+                                  className="h-8 border border-slate-200 rounded-lg px-2 w-20 text-right text-slate-800 font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
                                 />
                               </div>
                             </td>
@@ -630,29 +635,29 @@ function LedgerContent() {
                   </table>
                 </div>
 
-                <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end">
+                <div className="p-4 bg-slate-50/40 border-t border-slate-100 flex justify-end">
                   <button
                     onClick={() => handleSaveLedgerChanges("extra")}
                     disabled={loading}
-                    className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-sm rounded-xl shadow-md hover:shadow active:scale-[0.98] cursor-pointer flex items-center gap-1.5 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn-primary text-xs tracking-wider uppercase font-extrabold px-6 py-2.5 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Save Extra Products changes
+                    Save Extra Changes
                   </button>
                 </div>
               </div>
 
               {/* Total Balance Summary */}
-              <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 mt-4 flex items-center justify-between shadow-lg">
-                <span className="text-[11px] text-slate-400 font-extrabold uppercase tracking-wider font-bold">
+              <div className="bg-gradient-to-r from-[#0a0f1d] via-[#0d1527] to-[#03060a] border border-slate-800/40 text-white p-6 rounded-2xl flex items-center justify-between shadow-lg select-none">
+                <span className="text-[10px] sm:text-xs text-slate-400 font-extrabold uppercase tracking-widest block">
                   Net Deliveries Total ({getSelectedMonthName(selectedMonthFilter)})
                 </span>
-                <span className="text-xl font-black text-emerald-400">
-                  ₹{getSelectedMonthTotal().toFixed(2)}
+                <span className="text-xl sm:text-2xl font-black text-emerald-400">
+                  ₹{getSelectedMonthTotal().toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-16 text-center text-slate-400 text-xs font-bold">
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.015)] p-16 text-center text-slate-400 text-xs font-bold select-none">
               Please select a customer from the dropdown menu above to view and edit their detailed ledger statement.
             </div>
           )}

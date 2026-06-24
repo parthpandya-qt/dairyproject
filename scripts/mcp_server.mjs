@@ -63,9 +63,13 @@ server.tool(
   async () => {
     try {
       const rows = await executeQuery(`
-        SELECT c.*, d.name AS itemName, d.pricePerUnit AS itemPrice, d.unit AS itemUnit
+        SELECT c.*, 
+               COALESCE(di.name, ai.name) AS itemName, 
+               COALESCE(di.pricePerUnit, ai.pricePerUnit) AS itemPrice, 
+               COALESCE(di.unit, ai.unit) AS itemUnit
         FROM customers c
-        LEFT JOIN default_dairy_items d ON c.itemId = d.id
+        LEFT JOIN default_dairy_items di ON c.itemId = di.id AND c.isDefaultItem = 1
+        LEFT JOIN dairy_items ai ON c.itemId = ai.id AND (c.isDefaultItem IS NULL OR c.isDefaultItem = 0)
         WHERE c.userId = ? AND c.deletedAt IS NULL
       `, [USER_ID]);
       return { content: [{ type: "text", text: JSON.stringify(rows || [], null, 2) }] };
@@ -89,14 +93,24 @@ server.tool(
   },
   async (args) => {
     try {
-      const items = await executeQuery(
-        "SELECT id, name FROM default_dairy_items WHERE name LIKE ? LIMIT 1",
-        [`%${args.itemName}%`]
+      let items = await executeQuery(
+        "SELECT id, name FROM dairy_items WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
+        [`%${args.itemName}%`, USER_ID]
       );
+      let isDefaultItem = 0;
+      if (!items || items.length === 0) {
+        items = await executeQuery(
+          "SELECT id, name FROM default_dairy_items WHERE name LIKE ? LIMIT 1",
+          [`%${args.itemName}%`]
+        );
+        if (items && items.length > 0) {
+          isDefaultItem = 1;
+        }
+      }
       const itemId = items && items.length > 0 ? items[0].id : null;
       const result = await executeQuery(`
         INSERT INTO customers (userId, name, phone, address, morningQuantity, eveningQuantity, openingBalance, itemId, isDefaultItem)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         USER_ID,
         args.name,
@@ -105,7 +119,8 @@ server.tool(
         args.morningQuantity || 0,
         args.eveningQuantity || 0,
         args.openingBalance || 0,
-        itemId
+        itemId,
+        isDefaultItem
       ]);
       return { content: [{ type: "text", text: `Customer ${args.name} added successfully with ID: ${result.insertId}` }] };
     } catch (e) {
@@ -126,7 +141,7 @@ server.tool(
   async (args) => {
     try {
       const custs = await executeQuery(
-        "SELECT id, itemId, name FROM customers WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
+        "SELECT id, itemId, isDefaultItem, name FROM customers WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
         [`%${args.customerName}%`, USER_ID]
       );
       if (!custs || custs.length === 0) {
@@ -135,7 +150,11 @@ server.tool(
       const cust = custs[0];
       let pricePerUnit = 0;
       if (cust.itemId) {
-        const items = await executeQuery("SELECT pricePerUnit FROM default_dairy_items WHERE id = ? LIMIT 1", [cust.itemId]);
+        const queryStr = cust.isDefaultItem 
+          ? "SELECT pricePerUnit FROM default_dairy_items WHERE id = ? LIMIT 1"
+          : "SELECT pricePerUnit FROM dairy_items WHERE id = ? AND userId = ? LIMIT 1";
+        const params = cust.isDefaultItem ? [cust.itemId] : [cust.itemId, USER_ID];
+        const items = await executeQuery(queryStr, params);
         if (items && items.length > 0) {
           pricePerUnit = Number(items[0].pricePerUnit);
         }
@@ -157,11 +176,12 @@ server.tool(
       } else {
         await executeQuery(`
           INSERT INTO transactions (userId, customerId, itemId, isDefaultItem, date, morningQuantity, eveningQuantity, totalPrice, pricePerUnit)
-          VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
           USER_ID,
           cust.id,
           cust.itemId,
+          cust.isDefaultItem,
           targetDate,
           args.morningQuantity,
           args.eveningQuantity,
@@ -264,9 +284,12 @@ server.tool(
       }
       const cust = custs[0];
       const txs = await executeQuery(`
-        SELECT t.*, d.name AS itemName, d.unit AS itemUnit
+        SELECT t.*, 
+               COALESCE(di.name, ai.name) AS itemName, 
+               COALESCE(di.unit, ai.unit) AS itemUnit
         FROM transactions t
-        LEFT JOIN default_dairy_items d ON t.itemId = d.id
+        LEFT JOIN default_dairy_items di ON t.itemId = di.id AND t.isDefaultItem = 1
+        LEFT JOIN dairy_items ai ON t.itemId = ai.id AND (t.isDefaultItem IS NULL OR t.isDefaultItem = 0)
         WHERE t.customerId = ? AND t.userId = ? AND t.date LIKE ?
       `, [cust.id, USER_ID, `${args.monthKey}%`]);
 
@@ -385,13 +408,24 @@ server.tool(
     try {
       // Resolve itemId if itemName is provided
       let itemId = undefined;
+      let isDefaultItem = undefined;
       if (args.itemName) {
         const items = await executeQuery(
-          "SELECT id FROM default_dairy_items WHERE name LIKE ? LIMIT 1",
-          [`%${args.itemName}%`]
+          "SELECT id FROM dairy_items WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
+          [`%${args.itemName}%`, USER_ID]
         );
         if (items && items.length > 0) {
           itemId = items[0].id;
+          isDefaultItem = 0;
+        } else {
+          const defItems = await executeQuery(
+            "SELECT id FROM default_dairy_items WHERE name LIKE ? LIMIT 1",
+            [`%${args.itemName}%`]
+          );
+          if (defItems && defItems.length > 0) {
+            itemId = defItems[0].id;
+            isDefaultItem = 1;
+          }
         }
       }
 
@@ -412,10 +446,11 @@ server.tool(
       const finalEveningQty = args.eveningQuantity !== undefined ? args.eveningQuantity : Number(cust.eveningQuantity);
       const finalOpeningBal = args.openingBalance !== undefined ? args.openingBalance : Number(cust.openingBalance);
       const finalItemId = itemId !== undefined ? itemId : cust.itemId;
+      const finalIsDefaultItem = isDefaultItem !== undefined ? isDefaultItem : cust.isDefaultItem;
 
       await executeQuery(`
         UPDATE customers 
-        SET name = ?, phone = ?, address = ?, morningQuantity = ?, eveningQuantity = ?, openingBalance = ?, itemId = ?
+        SET name = ?, phone = ?, address = ?, morningQuantity = ?, eveningQuantity = ?, openingBalance = ?, itemId = ?, isDefaultItem = ?
         WHERE id = ? AND userId = ?
       `, [
         finalName,
@@ -425,6 +460,7 @@ server.tool(
         finalEveningQty,
         finalOpeningBal,
         finalItemId,
+        finalIsDefaultItem,
         args.customerId,
         USER_ID
       ]);
@@ -625,7 +661,7 @@ server.tool(
   async (args) => {
     try {
       const custs = await executeQuery(
-        "SELECT id, itemId, name, morningQuantity, eveningQuantity FROM customers WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
+        "SELECT id, itemId, isDefaultItem, name, morningQuantity, eveningQuantity FROM customers WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
         [`%${args.customerName}%`, USER_ID]
       );
       if (!custs || custs.length === 0) {
@@ -634,7 +670,11 @@ server.tool(
       const cust = custs[0];
       let pricePerUnit = 0;
       if (cust.itemId) {
-        const items = await executeQuery("SELECT pricePerUnit FROM default_dairy_items WHERE id = ? LIMIT 1", [cust.itemId]);
+        const queryStr = cust.isDefaultItem 
+          ? "SELECT pricePerUnit FROM default_dairy_items WHERE id = ? LIMIT 1"
+          : "SELECT pricePerUnit FROM dairy_items WHERE id = ? AND userId = ? LIMIT 1";
+        const params = cust.isDefaultItem ? [cust.itemId] : [cust.itemId, USER_ID];
+        const items = await executeQuery(queryStr, params);
         if (items && items.length > 0) {
           pricePerUnit = Number(items[0].pricePerUnit);
         }
@@ -670,11 +710,12 @@ server.tool(
 
         await executeQuery(`
           INSERT INTO transactions (userId, customerId, itemId, isDefaultItem, date, morningQuantity, eveningQuantity, totalPrice, pricePerUnit)
-          VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
           USER_ID,
           cust.id,
           cust.itemId,
+          cust.isDefaultItem,
           args.date,
           finalMorning,
           finalEvening,
@@ -703,7 +744,7 @@ server.tool(
   async (args) => {
     try {
       const custs = await executeQuery(
-        "SELECT id, itemId, name, morningQuantity, eveningQuantity FROM customers WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
+        "SELECT id, itemId, isDefaultItem, name, morningQuantity, eveningQuantity FROM customers WHERE name LIKE ? AND userId = ? AND deletedAt IS NULL LIMIT 1",
         [`%${args.customerName}%`, USER_ID]
       );
       if (!custs || custs.length === 0) {
@@ -712,7 +753,11 @@ server.tool(
       const cust = custs[0];
       let pricePerUnit = 0;
       if (cust.itemId) {
-        const items = await executeQuery("SELECT pricePerUnit FROM default_dairy_items WHERE id = ? LIMIT 1", [cust.itemId]);
+        const queryStr = cust.isDefaultItem 
+          ? "SELECT pricePerUnit FROM default_dairy_items WHERE id = ? LIMIT 1"
+          : "SELECT pricePerUnit FROM dairy_items WHERE id = ? AND userId = ? LIMIT 1";
+        const params = cust.isDefaultItem ? [cust.itemId] : [cust.itemId, USER_ID];
+        const items = await executeQuery(queryStr, params);
         if (items && items.length > 0) {
           pricePerUnit = Number(items[0].pricePerUnit);
         }
@@ -762,11 +807,12 @@ server.tool(
 
           await executeQuery(`
             INSERT INTO transactions (userId, customerId, itemId, isDefaultItem, date, morningQuantity, eveningQuantity, totalPrice, pricePerUnit)
-            VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
           `, [
             USER_ID,
             cust.id,
             cust.itemId,
+            cust.isDefaultItem,
             dateStr,
             finalMorning,
             finalEvening,

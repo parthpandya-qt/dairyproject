@@ -122,7 +122,7 @@ export default function FormattedMessage({ content, role }: FormattedMessageProp
                 {headers.map((h, idx) => (
                   <th
                     key={idx}
-                    className="px-3 py-2 text-left font-black text-slate-350 uppercase tracking-wider whitespace-nowrap"
+                    className="px-3 py-2 text-left font-black text-slate-400 uppercase tracking-wider whitespace-nowrap"
                   >
                     {parseInline(h.trim())}
                   </th>

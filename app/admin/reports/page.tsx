@@ -334,8 +334,8 @@ export default function ReportsPage() {
       )}
 
       {loading ? (
-        <div className="p-20 text-center text-slate-455 text-xs font-semibold flex flex-col items-center justify-center gap-2">
-          <svg className="w-7 h-7 animate-spin text-slate-350" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="p-20 text-center text-slate-500 text-xs font-semibold flex flex-col items-center justify-center gap-2">
+          <svg className="w-7 h-7 animate-spin text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
           </svg>
           Compiling monthly customer billings...
@@ -671,27 +671,21 @@ export default function ReportsPage() {
                 {/* Receipt Header */}
                 <div className="text-center pb-4 border-b border-dashed border-slate-200">
                   <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">Dairy Ledger Statement</h2>
-                  <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider mt-0.5">Dairy Flow Pro • Invoice</p>
                   <div className="mt-2 text-[10px] text-slate-500 font-semibold flex justify-center gap-6 flex-wrap">
                     <span>Billing Period: {getSelectedMonthName(selectedMonthFilter)}</span>
                     <span>Date: {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span>
-                    <span>Receipt ID: DL-{new Date().getFullYear()}{String(new Date().getMonth() + 1).padStart(2, "0")}-{selectedCustomerForReceipt._id.substring(0, 6)}</span>
                   </div>
                 </div>
 
                 {/* Customer Details Inline Layout */}
-                <div className="py-3 border-b border-dashed border-slate-200 text-xs grid grid-cols-2 md:grid-cols-4 gap-4 text-slate-700">
+                <div className="py-3 border-b border-dashed border-slate-200 text-xs grid grid-cols-1 md:grid-cols-3 gap-4 text-slate-700">
                   <div>
                     <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Customer Name</span>
                     <span className="text-xs font-bold text-slate-900">{selectedCustomerForReceipt.name}</span>
                   </div>
                   <div>
                     <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Phone Number</span>
-                    <span className="text-xs font-bold text-slate-900">{selectedCustomerForReceipt.phone}</span>
-                  </div>
-                  <div>
-                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Delivery Address</span>
-                    <span className="text-xs font-bold text-slate-900">{selectedCustomerForReceipt.address}</span>
+                    <span className="text-xs font-bold text-slate-900">{selectedCustomerForReceipt.phone || "N/A"}</span>
                   </div>
                   <div>
                     <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Opening Balance</span>
@@ -707,10 +701,10 @@ export default function ReportsPage() {
                     getDetailedCustomerLedger(selectedCustomerForReceipt).map((group, gIdx) => (
                       <div key={gIdx} className="mb-4 last:mb-0">
                         {/* Table */}
-                        <div className="overflow-x-auto border border-slate-150 rounded-xl">
+                        <div className="overflow-x-auto border border-slate-200 rounded-xl">
                           <table className="w-full text-left border-collapse table-auto min-w-[800px]">
                             <thead>
-                              <tr className="border-b border-slate-250 text-slate-500 font-bold bg-slate-50/50 text-[10px] uppercase tracking-wider">
+                              <tr className="border-b border-slate-200 text-slate-500 font-bold bg-slate-50/50 text-[10px] uppercase tracking-wider">
                                 <th className="py-2.5 px-3">Date</th>
                                 <th className="py-2.5 px-3">Allocated Product</th>
                                 <th className="py-2.5 px-3 text-center">Morning Qty</th>
@@ -864,78 +858,46 @@ export default function ReportsPage() {
             background: white !important;
             color: black !important;
           }
-          /* Hide sidebar navigation, top header, page footer, and other layout containers */
-          aside, header, footer, .no-print {
-            display: none !important;
+          /* Hide all page content by default */
+          body * {
+            visibility: hidden !important;
           }
-          /* Reset root layout style constraints */
-          body, html, main, div {
-            background: white !important;
-            color: black !important;
-            box-shadow: none !important;
-            border: none !important;
-            overflow: visible !important;
+          /* Force only the statement card inside modal to show */
+          #printable-receipt-area, #printable-receipt-area * {
+            visibility: visible !important;
           }
-          /* Override modal fixed overlay styles to stretch to A4 canvas flow */
-          .modal-print-overlay {
+          #printable-receipt-area {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
             width: 100% !important;
-            height: auto !important;
-            background: white !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            display: block !important;
-            z-index: auto !important;
-            box-shadow: none !important;
-            backdrop-filter: none !important;
-          }
-          .modal-print-overlay > div {
-            max-width: 100% !important;
-            width: 100% !important;
-            box-shadow: none !important;
-            border: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            max-height: none !important;
-            background: white !important;
-          }
-          /* Hide preview modal top toolbar containing Print/Close buttons */
-          .modal-print-overlay > div > div:first-child {
-            display: none !important;
-          }
-          /* Ensure the receipt scrolls properly and fits print canvas */
-          .overflow-y-auto {
-            overflow: visible !important;
-            background: white !important;
-            padding: 0 !important;
-          }
-          #printable-receipt-area {
             border: none !important;
             box-shadow: none !important;
-            padding: 15px !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            margin: 0 auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
             background: white !important;
-            font-size: 10px !important;
+          }
+          /* Soften all borders and remove heavy dark lines */
+          #printable-receipt-area *, 
+          #printable-receipt-area table, 
+          #printable-receipt-area th, 
+          #printable-receipt-area td, 
+          #printable-receipt-area div {
+            border-color: #e2e8f0 !important;
+          }
+          #printable-receipt-area table {
+            width: 100% !important;
+            border-collapse: collapse !important;
           }
           #printable-receipt-area table th,
           #printable-receipt-area table td {
-            padding: 4px 6px !important;
-            font-size: 9px !important;
-          }
-          #printable-receipt-area h2 {
-            font-size: 16px !important;
+            padding: 6px 8px !important;
+            font-size: 10px !important;
+            border-bottom: 1px solid #f1f5f9 !important;
           }
           .print-summary-card {
-            margin-top: 8px !important;
-            padding: 8px !important;
-            gap: 8px !important;
-          }
-          .print-summary-card span {
-            font-size: 8px !important;
+            border: 1px solid #e2e8f0 !important;
+            background: #f8fafc !important;
           }
         }
       `}</style>

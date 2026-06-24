@@ -381,7 +381,7 @@ function ReceiptsContent() {
 
       {loading ? (
         <div className="p-20 text-center text-slate-400 text-xs font-semibold flex flex-col items-center justify-center gap-2 no-print">
-          <svg className="w-7 h-7 animate-spin text-slate-350" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-7 h-7 animate-spin text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
           </svg>
           Loading billing registry...
@@ -550,22 +550,20 @@ function ReceiptsContent() {
                   </div>
 
                   {/* Printable layout wrapper */}
-                  <div id="printable-receipt-area" className="bg-white p-6 rounded-2xl border border-slate-150 shadow-inner text-slate-800 font-sans w-full mx-auto print-card">
+                  <div id="printable-receipt-area" className="bg-white p-6 rounded-2xl border border-slate-100 text-slate-800 font-sans w-full mx-auto print-card">
                     {/* Header */}
-                    <div className="text-center pb-4 border-b border-dashed border-slate-200">
+                    <div className="text-center pb-4 border-b border-dashed border-slate-100">
                       <h2 className="text-base font-black text-slate-900 uppercase tracking-tight">
                         Dairy Ledger Statement of {previewCustomer.name}
                       </h2>
-                      <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider mt-0.5">Dairy Flow Pro • Invoice</p>
                       <div className="mt-2 text-[10px] text-slate-500 font-semibold flex justify-center gap-6 flex-wrap">
                         <span>Billing Period: {getSelectedMonthName(previewBill.billingMonth)}</span>
                         <span>Date: {new Date(previewBill.createdAt || "").toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span>
-                        <span>Receipt ID: DL-{new Date(previewBill.createdAt || "").getFullYear()}{String(new Date(previewBill.createdAt || "").getMonth() + 1).padStart(2, "0")}-{previewBill._id?.substring(0, 6)}</span>
                       </div>
                     </div>
 
                     {/* Customer Info */}
-                    <div className="py-3 border-b border-dashed border-slate-200 text-xs grid grid-cols-2 md:grid-cols-4 gap-4 text-slate-700">
+                    <div className="py-3 border-b border-dashed border-slate-100 text-xs grid grid-cols-2 md:grid-cols-4 gap-4 text-slate-700">
                       <div>
                         <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Customer Name</span>
                         <span className="text-xs font-bold text-slate-900">{previewCustomer.name}</span>
@@ -574,10 +572,7 @@ function ReceiptsContent() {
                         <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Phone Number</span>
                         <span className="text-xs font-bold text-slate-900">{previewCustomer.phone || "N/A"}</span>
                       </div>
-                      <div>
-                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Delivery Address</span>
-                        <span className="text-xs font-bold text-slate-900">{previewCustomer.address || "N/A"}</span>
-                      </div>
+
                       <div>
                         <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Opening Balance</span>
                         <span className="text-xs font-bold text-slate-900">₹{Number(previewBill.openingBalance || 0).toFixed(2)}</span>
@@ -592,10 +587,10 @@ function ReceiptsContent() {
                         getDetailedCustomerLedger(previewCustomer, previewBill.billingMonth).map((group, gIdx) => (
                           <div key={gIdx} className="mb-4 last:mb-0">
                             {showDetailedLedger ? (
-                              <div className="overflow-x-auto border border-slate-150 rounded-xl">
+                              <div className="overflow-x-auto border border-slate-100 rounded-xl">
                                 <table className="w-full text-left border-collapse table-auto min-w-[700px]">
                                   <thead>
-                                    <tr className="border-b border-slate-200 text-slate-500 font-bold bg-slate-50/50 text-[10px] uppercase tracking-wider">
+                                    <tr className="border-b border-slate-100 text-slate-500 font-bold bg-slate-50/50 text-[10px] uppercase tracking-wider">
                                       <th className="py-2.5 px-3">Date</th>
                                       <th className="py-2.5 px-3">Allocated Product</th>
                                       <th className="py-2.5 px-3 text-center">Morning</th>
@@ -640,11 +635,7 @@ function ReceiptsContent() {
                                   </tbody>
                                 </table>
                               </div>
-                            ) : (
-                              <div className="text-center py-2 px-4 bg-slate-50/50 border border-slate-100 rounded-xl text-[10px] text-slate-400 font-medium no-print">
-                                Daily delivery logs collapsed. Click &quot;Show Daily Ledger&quot; above to view daily details.
-                              </div>
-                            )}
+                            ) : null}
 
                             {/* Details box inside preview */}
                             {(() => {
@@ -658,28 +649,33 @@ function ReceiptsContent() {
                               if (totalQty === 0) return null;
 
                               return (
-                                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-2 sm:grid-cols-5 gap-3 text-[10px] font-bold text-slate-700 mt-3 print-summary-card">
-                                  <div>
-                                    <span className="text-[8px] text-slate-400 uppercase tracking-wider block">Total Morning</span>
-                                    <span className="text-slate-900 font-extrabold">{totalMorning} {previewCustomer.itemUnit || 'L'}</span>
+                                <div className="mt-4 border border-slate-100 rounded-2xl overflow-hidden bg-slate-50/50 print-summary-card">
+                                  <div className="bg-slate-50 px-4 py-2 border-b border-slate-100 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                                    Delivery Summary
                                   </div>
-                                  <div>
-                                    <span className="text-[8px] text-slate-400 uppercase tracking-wider block">Total Evening</span>
-                                    <span className="text-slate-900 font-extrabold">{totalEvening} {previewCustomer.itemUnit || 'L'}</span>
-                                  </div>
-                                  <div>
-                                    <span className="text-[8px] text-slate-400 uppercase tracking-wider block">Rate (Per Unit)</span>
-                                    <span className="text-slate-900 font-extrabold">₹{rate.toFixed(2)} / {previewCustomer.itemUnit || 'L'}</span>
-                                  </div>
-                                  <div>
-                                    <span className="text-[8px] text-slate-400 uppercase tracking-wider block">Default Bill</span>
-                                    <span className="text-blue-600 font-black font-mono">₹{defaultTotalBill.toFixed(2)}</span>
-                                  </div>
-                                  <div>
-                                    <span className="text-[8px] text-slate-400 uppercase tracking-wider block">Extra Items</span>
-                                    <span className="text-amber-600 font-black font-mono">
-                                      ₹{group.rows.reduce((sum, r) => sum + r.extraItems.reduce((s, item) => s + (item.price || 0), 0), 0).toFixed(2)}
-                                    </span>
+                                  <div className="p-4 grid grid-cols-2 sm:grid-cols-5 gap-4 text-xs">
+                                    <div className="bg-white p-3 rounded-xl border border-slate-100/80 shadow-sm">
+                                      <span className="text-[9px] text-slate-400 uppercase font-bold block mb-1">Morning Qty</span>
+                                      <span className="text-sm font-extrabold text-slate-800">{totalMorning} {previewCustomer.itemUnit || 'L'}</span>
+                                    </div>
+                                    <div className="bg-white p-3 rounded-xl border border-slate-100/80 shadow-sm">
+                                      <span className="text-[9px] text-slate-400 uppercase font-bold block mb-1">Evening Qty</span>
+                                      <span className="text-sm font-extrabold text-slate-800">{totalEvening} {previewCustomer.itemUnit || 'L'}</span>
+                                    </div>
+                                    <div className="bg-white p-3 rounded-xl border border-slate-100/80 shadow-sm">
+                                      <span className="text-[9px] text-slate-400 uppercase font-bold block mb-1">Rate / Unit</span>
+                                      <span className="text-sm font-extrabold text-slate-800">₹{rate.toFixed(2)}</span>
+                                    </div>
+                                    <div className="bg-white p-3 rounded-xl border border-slate-100/80 shadow-sm">
+                                      <span className="text-[9px] text-slate-400 uppercase font-bold block mb-1">Default Bill</span>
+                                      <span className="text-sm font-black text-blue-600 font-mono">₹{defaultTotalBill.toFixed(2)}</span>
+                                    </div>
+                                    <div className="bg-white p-3 rounded-xl border border-slate-100/80 shadow-sm">
+                                      <span className="text-[9px] text-slate-400 uppercase font-bold block mb-1">Extra Items</span>
+                                      <span className="text-sm font-black text-amber-600 font-mono">
+                                        ₹{group.rows.reduce((sum, r) => sum + r.extraItems.reduce((s, item) => s + (item.price || 0), 0), 0).toFixed(2)}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                               );
@@ -690,39 +686,49 @@ function ReceiptsContent() {
                     </div>
 
                     {/* Financial summary calculations */}
-                    <div className="py-4 border-t border-dashed border-slate-200 text-xs">
-                      <div className="max-w-xs ml-auto">
-                        <table className="w-full text-left">
-                          <tbody>
-                            <tr>
-                              <td className="py-0.5 text-slate-500 font-semibold">Opening Balance:</td>
-                              <td className="py-0.5 text-slate-900 font-bold text-right font-mono">
-                                ₹{Number(previewBill.openingBalance || 0).toFixed(2)}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="py-0.5 text-slate-500 font-semibold">Total Deliveries:</td>
-                              <td className="py-0.5 text-slate-900 font-bold text-right font-mono">
-                                ₹{previewBill.deliveriesTotal.toFixed(2)}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="py-0.5 text-slate-500 font-semibold">Paid Amount:</td>
-                              <td className="py-0.5 text-slate-900 font-bold text-right text-emerald-600 font-mono">
-                                ₹{Number(previewBill.paidAmount || 0).toFixed(2)}
-                              </td>
-                            </tr>
-                            <tr className="border-t border-slate-200">
-                              <td className="py-2 text-slate-900 font-extrabold text-xs uppercase tracking-tight">Net Amount Due:</td>
-                              <td className="py-2 text-slate-900 font-black text-right text-sm font-mono">
-                                ₹{(previewBill.totalAmount - Number(previewBill.paidAmount || 0)).toFixed(2)}
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
+                    <div className="py-6 border-t border-dashed border-slate-100 mt-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                        {/* Status badge / payment message */}
+                        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs text-slate-600">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span className="font-extrabold uppercase text-[10px] text-slate-500 tracking-wider">Payment Info</span>
+                          </div>
+                          <p className="leading-relaxed">
+                            Thank you for your business. Outstanding payments should be settled at the earliest convenience.
+                          </p>
+                        </div>
+
+                        {/* Beautiful Pricing Breakdown */}
+                        <div className="space-y-3 bg-slate-50/50 p-5 rounded-2xl border border-slate-100">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-slate-500 font-semibold">Opening Balance:</span>
+                            <span className="text-slate-800 font-bold font-mono">
+                              ₹{Number(previewBill.openingBalance || 0).toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-slate-500 font-semibold">Monthly Deliveries:</span>
+                            <span className="text-slate-800 font-bold font-mono">
+                              ₹{previewBill.deliveriesTotal.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-slate-500 font-semibold">Total Paid Amount:</span>
+                            <span className="text-emerald-600 font-bold font-mono">
+                              ₹{Number(previewBill.paidAmount || 0).toFixed(2)}
+                            </span>
+                          </div>
+                          
+                          <div className="border-t border-slate-100 pt-3 flex justify-between items-center">
+                            <span className="text-slate-900 font-extrabold text-xs uppercase tracking-tight">Net Amount Due:</span>
+                            <span className="text-xl font-black text-slate-950 font-mono tracking-tight">
+                              ₹{(previewBill.totalAmount - Number(previewBill.paidAmount || 0)).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-
                   </div>
                 </div>
               )}
@@ -882,37 +888,32 @@ function ReceiptsContent() {
             background: white !important;
             color: black !important;
           }
-          /* Reset parent layout containers to allow standard page flow */
-          html, body, main, .min-h-screen {
-            height: auto !important;
-            min-height: auto !important;
-            overflow: visible !important;
-            display: block !important;
-            position: static !important;
-            background: white !important;
-            color: black !important;
-            box-shadow: none !important;
-            border: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
+          /* Hide all page content by default */
+          body * {
+            visibility: hidden !important;
           }
-          .lg\\:col-span-7 {
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            display: block !important;
+          /* Force only the statement card to show */
+          #printable-receipt-area, #printable-receipt-area * {
+            visibility: visible !important;
           }
           #printable-receipt-area {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
             border: none !important;
             box-shadow: none !important;
-            padding: 0px !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            margin: 0 auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
             background: white !important;
-            font-size: 11px !important;
-            color: black !important;
+          }
+          /* Soften all borders and remove heavy dark lines */
+          #printable-receipt-area *, 
+          #printable-receipt-area table, 
+          #printable-receipt-area th, 
+          #printable-receipt-area td, 
+          #printable-receipt-area div {
+            border-color: #e2e8f0 !important;
           }
           #printable-receipt-area table {
             width: 100% !important;
@@ -922,32 +923,11 @@ function ReceiptsContent() {
           #printable-receipt-area table td {
             padding: 6px 8px !important;
             font-size: 10px !important;
-            border-bottom: 1px solid #e2e8f0 !important;
-          }
-          #printable-receipt-area h2 {
-            font-size: 18px !important;
-          }
-          .print-card {
-            border: none !important;
-            box-shadow: none !important;
-            padding: 0 !important;
-            background: white !important;
+            border-bottom: 1px solid #f1f5f9 !important;
           }
           .print-summary-card {
-            display: grid !important;
-            grid-template-cols: repeat(5, minmax(0, 1fr)) !important;
-            margin-top: 12px !important;
-            padding: 12px !important;
-            gap: 12px !important;
             border: 1px solid #e2e8f0 !important;
             background: #f8fafc !important;
-          }
-          .print-summary-card span {
-            font-size: 9px !important;
-          }
-          /* Hide all non-printable elements - Placed at the very bottom to guarantee precedence */
-          aside, header, footer, .no-print, .form-column, .bills-table-container, button, [title="AI Copilot Chatbot"], .fixed {
-            display: none !important;
           }
         }
       `}</style>

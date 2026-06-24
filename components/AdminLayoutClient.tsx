@@ -167,70 +167,92 @@ export default function AdminLayoutClient({
   ];
 
   return (
-    <div className="flex min-h-screen bg-slate-50/50">
+    <div className="fixed inset-0 flex bg-slate-50/30">
       {/* Sidebar Navigation */}
       <aside
-        className="static translate-x-0 w-16 md:w-72 bg-[#0b0f19] text-white flex flex-col shadow-xl border-r border-slate-800/20 shrink-0"
+        className="static translate-x-0 w-16 md:w-72 bg-gradient-to-b from-[#0a0f1d] via-[#070b14] to-[#03060a] text-white flex flex-col shadow-[10px_0_40px_rgba(0,0,0,0.2)] border-r border-slate-800/30 shrink-0"
       >
-        <div className="p-3 md:p-6 flex-1 flex flex-col">
-          {/* Header & Logo */}
-          <div className="flex items-center justify-center md:justify-between mb-10">
-            <h2 className="text-xl font-black text-emerald-400 tracking-tight flex items-center gap-2">
-              <span className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl">
+        <div className="p-3 md:p-6 flex-1 flex flex-col justify-between">
+          <div>
+            {/* Header & Logo */}
+            <div className="flex items-center justify-center md:justify-start gap-3 mb-12 mt-2 select-none">
+              <span className="p-2.5 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 text-emerald-400 rounded-2xl shadow-[inset_0_2px_4px_rgba(16,185,129,0.15)] border border-emerald-500/20 animate-pulse">
                 <DairyLogo className="w-6 h-6" strokeWidth={2.5} />
               </span>
-              <span className="hidden md:inline">Dairy Ledger Admin</span>
-            </h2>
+              <span className="hidden md:inline text-lg font-black bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent tracking-tight">
+                DairyFlow Pro
+              </span>
+            </div>
+
+            {/* Nav Links */}
+            <nav className="space-y-1.5 flex-1">
+              {navLinks.map((link) => {
+                const isActive =
+                  link.href === "/admin"
+                     ? pathname === "/admin" || pathname === "/admin/"
+                     : pathname?.startsWith(link.href);
+
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`group flex items-center justify-center md:justify-start gap-3.5 px-3 py-3.5 md:px-4 rounded-2xl transition-all duration-300 font-bold text-xs tracking-wide uppercase relative overflow-hidden ${
+                      isActive
+                        ? "bg-gradient-to-r from-emerald-500/12 to-teal-500/6 text-emerald-400 border border-emerald-500/15 shadow-[0_2px_12px_rgba(16,185,129,0.04)]"
+                        : "text-slate-400 hover:text-slate-100 hover:bg-white/[0.02] border border-transparent"
+                    }`}
+                  >
+                    {/* Active vertical glow indicator */}
+                    {isActive && (
+                      <span className="absolute left-0 top-3.5 bottom-3.5 w-1 bg-gradient-to-b from-emerald-400 to-teal-500 rounded-full shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+                    )}
+                    <div className={`transition-colors duration-300 ${isActive ? "text-emerald-400" : "text-slate-500 group-hover:text-slate-400"}`}>
+                      {link.icon}
+                    </div>
+                    <span className="hidden md:inline transition-transform duration-300 group-hover:translate-x-1">{link.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
 
-          {/* Nav Links */}
-          <nav className="space-y-1.5 flex-1">
-            {navLinks.map((link) => {
-              // Exact match for admin home, startsWith for others
-              const isActive =
-                link.href === "/admin"
-                   ? pathname === "/admin" || pathname === "/admin/"
-                  : pathname?.startsWith(link.href);
-
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`flex items-center justify-center md:justify-start gap-3 px-3 py-3 md:px-4 rounded-xl transition duration-155 font-bold text-xs tracking-wide uppercase ${
-                    isActive
-                      ? "bg-slate-800 text-white border border-slate-700/50"
-                      : "text-slate-355 hover:text-white hover:bg-slate-850/80"
-                  }`}
-                >
-                  {link.icon}
-                  <span className="hidden md:inline">{link.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Sidebar Footer branding */}
+          <div className="hidden md:block border-t border-white/5 pt-4 mb-2 select-none">
+            <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Enterprise Ledger</p>
+            <p className="text-[9px] text-slate-600 mt-0.5 font-bold">v1.2.5 • Active Secure</p>
+          </div>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 min-w-0">
         {/* Top Header bar */}
-        <header className="bg-white border-b border-slate-200/60 px-4 md:px-8 py-4 shadow-sm flex items-center justify-between sticky top-0 z-30 bg-white/95 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            <h1 className="text-base md:text-xl font-black text-slate-800 tracking-tight">
+        <header className="bg-white/70 backdrop-blur-xl border-b border-slate-200/40 px-4 md:px-8 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.015)] flex items-center justify-between sticky top-0 z-35">
+          <div className="flex items-center gap-3 select-none">
+            <h1 className="text-base md:text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
               Dairy Management Center
             </h1>
           </div>
-          {logoutButton}
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center font-black text-xs shadow-[0_2px_8px_rgba(16,185,129,0.2)] select-none border border-emerald-400/20">
+              P
+            </div>
+            {logoutButton}
+          </div>
         </header>
 
         {/* Page Content wrapper */}
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-slate-50/30">
           {children}
         </main>
 
         {/* Bottom Footer */}
-        <footer className="bg-white border-t border-slate-200/50 py-4 px-4 md:px-8 text-center text-xs font-semibold text-slate-400">
-          © {new Date().getFullYear()} Dairy Management System • Designed to Industry Standards
+        <footer className="bg-white/80 backdrop-blur-sm border-t border-slate-200/20 py-4 px-4 md:px-8 text-center text-[10px] font-semibold text-slate-400 select-none">
+          © {new Date().getFullYear()} DairyFlow Pro • Enterprise Livestock & Distribution Systems
         </footer>
       </div>
 
@@ -241,7 +263,7 @@ export default function AdminLayoutClient({
             @keyframes chatSlideUp {
               from {
                 opacity: 0;
-                transform: translateY(12px) scale(0.97);
+                transform: translateY(16px) scale(0.96);
               }
               to {
                 opacity: 1;
@@ -249,15 +271,15 @@ export default function AdminLayoutClient({
               }
             }
             .animate-chat-open {
-              animation: chatSlideUp 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+              animation: chatSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             }
           `}</style>
-          <div className="fixed bottom-24 right-6 w-96 md:w-[440px] max-w-[calc(100vw-3rem)] h-[520px] bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-3xl flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-50 overflow-hidden text-slate-100 animate-chat-open origin-bottom-right no-print">
+          <div className="fixed bottom-24 right-6 w-96 md:w-[440px] max-w-[calc(100vw-3rem)] h-[540px] bg-slate-950/92 backdrop-blur-3xl border border-white/10 rounded-[24px] flex flex-col shadow-[0_25px_60px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.06)] z-50 overflow-hidden text-slate-100 animate-chat-open origin-bottom-right no-print">
             {/* Header */}
-            <div className="p-4 bg-gradient-to-r from-slate-900/95 via-slate-900/98 to-slate-950/95 border-b border-white/5 flex items-center justify-between">
+            <div className="p-4 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-b border-white/5 flex items-center justify-between select-none">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="w-10 h-10 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400 font-black shadow-inner shadow-emerald-400/5">
+                  <div className="w-10 h-10 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400 font-black shadow-inner">
                     🤖
                   </div>
                   <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-slate-900 shadow-md">
@@ -275,7 +297,7 @@ export default function AdminLayoutClient({
                 {/* Close button */}
                 <button
                   onClick={() => setChatOpen(false)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5 transition cursor-pointer"
+                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5 transition-all cursor-pointer"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
@@ -292,17 +314,17 @@ export default function AdminLayoutClient({
                   className={`flex flex-col max-w-[85%] ${m.role === "user" ? "ml-auto items-end" : "mr-auto items-start"}`}
                 >
                   {m.role !== "user" && (
-                    <span className="text-[9px] text-slate-500 font-black uppercase tracking-wider mb-1 block ml-1">
+                    <span className="text-[9px] text-slate-500 font-black uppercase tracking-wider mb-1 block ml-1 select-none">
                       {m.role === "system" ? "System Log" : "Copilot"}
                     </span>
                   )}
                   <div
                     className={`px-4 py-3 rounded-2xl text-xs leading-relaxed shadow-sm ${
                       m.role === "user"
-                        ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-br-none shadow-md shadow-emerald-500/10 font-medium whitespace-pre-wrap"
+                        ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-tr-none shadow-md shadow-emerald-500/10 font-semibold whitespace-pre-wrap"
                         : m.role === "system"
-                        ? "bg-rose-500/10 border border-rose-500/20 text-rose-300 font-mono rounded-bl-none whitespace-pre-wrap"
-                        : "bg-white/5 border border-white/10 text-slate-100 rounded-bl-none backdrop-blur-sm"
+                        ? "bg-rose-500/10 border border-rose-500/20 text-rose-300 font-mono rounded-tl-none whitespace-pre-wrap"
+                        : "bg-white/5 border border-white/8 text-slate-100 rounded-tl-none backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
                     }`}
                   >
                     <FormattedMessage content={m.content} role={m.role} />
@@ -311,10 +333,10 @@ export default function AdminLayoutClient({
               ))}
               {isTyping && (
                 <div className="flex flex-col items-start gap-1 mr-auto max-w-[70%]">
-                  <span className="text-[9px] text-slate-500 font-black uppercase tracking-wider mb-1 block ml-1">
+                  <span className="text-[9px] text-slate-500 font-black uppercase tracking-wider mb-1 block ml-1 select-none">
                     Copilot is typing
                   </span>
-                  <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-4 py-3.5 rounded-2xl rounded-bl-none">
+                  <div className="flex items-center gap-1.5 bg-white/5 border border-white/8 px-4 py-3.5 rounded-2xl rounded-tl-none">
                     <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" />
                     <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:0.2s]" />
                     <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:0.4s]" />
@@ -331,7 +353,7 @@ export default function AdminLayoutClient({
                   <button
                     key={idx}
                     onClick={() => handleSendMessage(s)}
-                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-350 hover:text-white rounded-xl text-[10px] font-bold transition duration-200 ease-out active:scale-95 cursor-pointer"
+                    className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 hover:border-emerald-500/30 text-emerald-300 hover:text-white rounded-xl text-[10px] font-bold transition duration-200 ease-out active:scale-95 cursor-pointer"
                   >
                     💡 {s}
                   </button>
@@ -366,21 +388,21 @@ export default function AdminLayoutClient({
       {/* Floating Action Button */}
       <button
         onClick={() => setChatOpen(!chatOpen)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-tr from-emerald-400 to-teal-500 text-white shadow-[0_8px_30px_rgba(16,185,129,0.3)] hover:shadow-[0_8px_30px_rgba(16,185,129,0.5)] rounded-full flex items-center justify-center z-50 cursor-pointer transition transform active:scale-90 hover:scale-105 hover:-translate-y-1 no-print"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-tr from-emerald-400 to-teal-500 text-white shadow-[0_8px_30px_rgba(16,185,129,0.35)] hover:shadow-[0_8px_30px_rgba(16,185,129,0.55)] rounded-full flex items-center justify-center z-50 cursor-pointer transition-all duration-300 transform active:scale-90 hover:scale-105 hover:-translate-y-1 no-print"
         title="AI Copilot Chatbot"
       >
         {chatOpen ? (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 animate-[spin_0.2s_ease-out]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         ) : (
           <div className="relative">
-            <svg className="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
             </svg>
-            <span className="absolute -top-1 -right-1 flex h-2 w-2">
+            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
             </span>
           </div>
         )}

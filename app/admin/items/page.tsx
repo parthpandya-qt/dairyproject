@@ -10,7 +10,7 @@ export default function DairyItemsAdminPage() {
   const [successMessage, setSuccessMessage] = useState<string>("");
 
   // Add Item Input Form States
-  const [name, setName] = useState<string>(" ");
+  const [name, setName] = useState<string>("");
   const [pricePerUnit, setPricePerUnit] = useState<string>("");
   const [unit, setUnit] = useState<string>("Liter");
 
@@ -152,22 +152,22 @@ export default function DairyItemsAdminPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-8 text-black pb-12">
       {/* Title Header Layout */}
-      <div className="border-b border-slate-200/60 pb-6">
+      <div className="border-b border-slate-200/50 pb-6 select-none">
         <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-          <span className="p-2 bg-amber-500/10 text-amber-600 rounded-xl inline-flex">
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span className="p-2.5 bg-emerald-500/10 text-emerald-600 rounded-2xl inline-flex border border-emerald-500/20">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
           </span>
           Dairy Products Catalog
         </h1>
-        <p className="text-sm text-slate-450 font-medium mt-1">Configure pricing rates, designations, and units for stock inventory assets.</p>
+        <p className="text-xs sm:text-sm text-slate-455 font-semibold mt-2">Configure pricing rates, designations, and units for stock inventory assets.</p>
       </div>
 
       {/* Global Alerts Feedback */}
       {successMessage && (
-        <div className="p-4 bg-emerald-50 border border-emerald-150 text-emerald-800 rounded-2xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 animate-in fade-in duration-200">
-          <span className="p-1 bg-emerald-100 text-emerald-700 rounded-lg">
+        <div className="p-4 bg-emerald-50/60 border border-emerald-150 text-emerald-800 rounded-2xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 animate-in fade-in duration-200">
+          <span className="p-1 bg-emerald-100/80 text-emerald-700 rounded-lg">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
             </svg>
@@ -176,8 +176,8 @@ export default function DairyItemsAdminPage() {
         </div>
       )}
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-150 text-rose-800 rounded-2xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 animate-in fade-in duration-200">
-          <span className="p-1 bg-rose-100 text-rose-700 rounded-lg">
+        <div className="p-4 bg-rose-50/60 border border-rose-150 text-rose-800 rounded-2xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 animate-in fade-in duration-200">
+          <span className="p-1 bg-rose-100/80 text-rose-700 rounded-lg">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -189,36 +189,36 @@ export default function DairyItemsAdminPage() {
       {/* Core Split Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Module Form Block */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/85 shadow-sm space-y-4">
-          <h2 className="text-lg font-bold border-b pb-2 text-slate-800 flex items-center gap-2 tracking-tight">
-            <span className="p-1 bg-amber-50 text-amber-600 rounded-lg">
+        <div className="card-premium space-y-5">
+          <h2 className="text-base font-extrabold border-b border-slate-100 pb-3 text-slate-800 flex items-center gap-2 tracking-tight">
+            <span className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg border border-emerald-500/10">
               <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
               </svg>
             </span>
-            Add New Product to Catalog
+            Add Product to Catalog
           </h2>
           
           <form onSubmit={handleAddItem} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Product Name</label>
+              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Product Name</label>
               <input 
                 type="text" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)} 
-                className="form-input-field text-sm" 
+                className="form-input-field text-xs sm:text-sm" 
                 placeholder="e.g. Buffalo Ghee, Fresh Paneer" 
                 required 
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Price per Unit (₹)</label>
+              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Price per Unit (₹)</label>
               <input 
                 type="number" 
                 value={pricePerUnit} 
                 onChange={(e) => setPricePerUnit(e.target.value)} 
-                className="form-input-field text-sm font-bold" 
+                className="form-input-field text-xs sm:text-sm font-bold animate-[pulse_3s_infinite]" 
                 placeholder="e.g. 65" 
                 min="0" 
                 required 
@@ -226,11 +226,11 @@ export default function DairyItemsAdminPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Selling Metric Unit</label>
+              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Selling Metric Unit</label>
               <select 
                 value={unit} 
                 onChange={(e) => setUnit(e.target.value)} 
-                className="form-input-field text-sm font-semibold cursor-pointer bg-white"
+                className="form-input-field text-xs sm:text-sm font-semibold cursor-pointer bg-white"
               >
                 <option value="Liter">Liter (L)</option>
                 <option value="Kg">Kilogram (Kg)</option>
@@ -238,18 +238,18 @@ export default function DairyItemsAdminPage() {
               </select>
             </div>
 
-            <button type="submit" className="w-full btn-primary text-sm font-bold bg-amber-600 hover:bg-amber-700 cursor-pointer shadow-md hover:shadow active:scale-[0.98]">
+            <button type="submit" className="w-full btn-primary text-xs tracking-wider uppercase font-extrabold py-3 mt-2 shadow-md">
               Add to Catalog
             </button>
           </form>
         </div>
 
-        {/* Dynamic Interactive Data Inventory Table */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/85 shadow-sm overflow-hidden">
-          <div className="p-5 bg-slate-50/70 border-b border-slate-100">
-            <h3 className="font-extrabold text-slate-800 text-sm tracking-tight">
+        {/* Dynamic Interactive Data Table */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.015)] overflow-hidden">
+          <div className="p-5 bg-slate-50/40 border-b border-slate-100 flex items-center justify-between">
+            <h3 className="font-extrabold text-slate-800 text-sm tracking-tight flex items-center gap-2">
               Asset Registry 
-              <span className="px-2.5 py-0.5 bg-slate-200 text-slate-650 rounded-full text-[10px] font-bold ml-2">
+              <span className="px-2.5 py-0.5 bg-slate-100 border border-slate-200/50 text-slate-600 rounded-full text-[10px] font-black">
                 {items.length} Products
               </span>
             </h3>
@@ -257,30 +257,32 @@ export default function DairyItemsAdminPage() {
 
           {loading ? (
             <div className="p-16 text-center text-slate-400 text-xs font-semibold flex flex-col items-center justify-center gap-2">
-              <svg className="w-6 h-6 animate-spin text-slate-350" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 animate-spin text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
               </svg>
               Synchronizing catalog inventory...
             </div>
           ) : items.length === 0 ? (
-            <p className="p-16 text-center text-slate-450 text-xs font-semibold">No products in inventory. Fill out the form on the left to start.</p>
+            <div className="p-16 text-center text-slate-450 text-xs font-semibold select-none">
+              No products configured. Register products using the left panel.
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50/30">
-                    <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Product Name</th>
-                    <th className="table-header-cell border-b border-slate-100 py-3.5 px-5">Pricing </th>
-                    <th className="table-header-cell border-b border-slate-100 py-3.5 px-5 text-right">Actions</th>
+                    <th className="table-header-cell py-3.5 px-5">Product Name</th>
+                    <th className="table-header-cell py-3.5 px-5">Pricing</th>
+                    <th className="table-header-cell py-3.5 px-5 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-150/40">
+                <tbody className="divide-y divide-slate-100">
                   {items.map((item) => (
-                    <tr key={item._id as string} className="hover:bg-slate-50/30 transition duration-150">
+                    <tr key={item._id as string} className="hover:bg-slate-50/15 transition-colors duration-150">
                       <td className="table-body-cell py-4 px-5 font-bold text-slate-900 flex items-center gap-2">
                         {item.name}
                         {item.isDefaultItem ? (
-                          <span className="px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200/60 rounded-full text-[9px] font-bold inline-flex">
+                          <span className="px-2 py-0.5 bg-slate-100 border border-slate-200/50 text-slate-600 rounded-full text-[9px] font-bold inline-flex select-none">
                             Default
                           </span>
                         ) : null}
@@ -292,7 +294,7 @@ export default function DairyItemsAdminPage() {
                         <div className="flex justify-end gap-2 flex-wrap sm:flex-nowrap">
                           <button 
                             onClick={() => handleOpenEditModal(item)}
-                            className="text-slate-650 bg-white hover:bg-slate-50 border border-slate-200/80 font-bold text-xs px-2.5 py-1.5 rounded-lg flex items-center transition cursor-pointer"
+                            className="text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/80 font-bold text-xs px-2.5 py-1.5 rounded-lg flex items-center transition cursor-pointer"
                           >
                             <svg className="w-3.5 h-3.5 mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -301,9 +303,9 @@ export default function DairyItemsAdminPage() {
                           </button>
                           <button 
                             onClick={() => handleDeleteItem(item._id as string, item.name)}
-                            className="text-rose-650 hover:text-rose-750 bg-rose-50/50 hover:bg-rose-50/80 border border-rose-100 font-bold text-xs px-2.5 py-1.5 rounded-lg flex items-center transition cursor-pointer"
+                            className="text-rose-600 hover:text-rose-700 bg-rose-50/50 hover:bg-rose-50 border border-rose-100 font-bold text-xs px-2.5 py-1.5 rounded-lg flex items-center transition cursor-pointer"
                           >
-                            <svg className="w-3.5 h-3.5 mr-1 text-rose-450" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 mr-1 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                             Remove
@@ -321,12 +323,12 @@ export default function DairyItemsAdminPage() {
 
       {/* Edit Dairy Item Modal Overlay */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-6 border-b bg-slate-50/80 flex justify-between items-center">
-              <h3 className="font-extrabold text-slate-800 text-lg flex items-center gap-2">
-                <span className="p-1 bg-amber-50 text-amber-600 rounded-lg">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300">
+          <div className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center select-none">
+              <h3 className="font-extrabold text-slate-800 text-base flex items-center gap-2">
+                <span className="p-1.5 bg-emerald-50 border border-emerald-500/10 text-emerald-600 rounded-lg">
+                  <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </span>
@@ -334,7 +336,7 @@ export default function DairyItemsAdminPage() {
               </h3>
               <button 
                 onClick={() => setIsEditModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-2xl font-bold cursor-pointer transition outline-none"
+                className="text-slate-400 hover:text-slate-600 text-2xl font-bold cursor-pointer transition outline-none leading-none"
               >
                 &times;
               </button>
@@ -342,34 +344,34 @@ export default function DairyItemsAdminPage() {
             
             <form onSubmit={handleSaveItem} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Product Title</label>
+                <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Product Title</label>
                 <input 
                   type="text" 
                   value={editName} 
                   onChange={(e) => setEditName(e.target.value)} 
-                  className="form-input-field text-sm" 
+                  className="form-input-field text-xs sm:text-sm" 
                   required 
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Price per Unit (₹)</label>
+                <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Price per Unit (₹)</label>
                 <input 
                   type="number" 
                   value={editPricePerUnit} 
                   onChange={(e) => setEditPricePerUnit(e.target.value)} 
-                  className="form-input-field text-sm font-bold" 
+                  className="form-input-field text-xs sm:text-sm font-bold" 
                   min="0"
                   required 
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Selling Metric Unit</label>
+                <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Selling Metric Unit</label>
                 <select 
                   value={editUnit} 
                   onChange={(e) => setEditUnit(e.target.value)} 
-                  className="form-input-field text-sm font-semibold cursor-pointer bg-white"
+                  className="form-input-field text-xs sm:text-sm font-semibold cursor-pointer bg-white"
                 >
                   <option value="Liter">Liter (L)</option>
                   <option value="Kg">Kilogram (Kg)</option>
@@ -381,13 +383,13 @@ export default function DairyItemsAdminPage() {
                 <button 
                   type="button" 
                   onClick={() => setIsEditModalOpen(false)}
-                  className="flex-1 px-4 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-650 font-bold rounded-xl transition duration-150 cursor-pointer text-center text-sm"
+                  className="flex-1 px-4 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold rounded-xl transition duration-150 cursor-pointer text-center text-sm"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
-                  className="flex-1 btn-primary text-sm font-bold bg-amber-600 hover:bg-amber-700 cursor-pointer shadow-md hover:shadow transition duration-200"
+                  className="flex-1 btn-primary text-xs tracking-wider uppercase font-extrabold cursor-pointer shadow-md hover:shadow transition duration-200"
                 >
                   Save Changes
                 </button>

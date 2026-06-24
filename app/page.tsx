@@ -20,7 +20,7 @@ export default function GlobalRootPage() {
           <div className="flex items-center gap-2.5 sm:gap-4">
             <Link 
               href="/signin" 
-              className="text-xs font-bold text-slate-650 hover:text-slate-900 transition tracking-wide uppercase px-1 py-2"
+              className="text-xs font-bold text-slate-600 hover:text-slate-900 transition tracking-wide uppercase px-1 py-2"
             >
               Sign In
             </Link>

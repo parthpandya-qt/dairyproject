@@ -1,9 +1,8 @@
 @import "tailwindcss";
 
-
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-950 antialiased selection:bg-green-100 selection:text-green-900;
+    @apply bg-slate-50/50 text-slate-900 antialiased selection:bg-emerald-100 selection:text-emerald-900;
   }
 
   /* Smooth scroll behaviors for data tables and panels */
@@ -15,25 +14,34 @@
 @layer components {
   /* Custom form field styling that overrides default operating system appearance */
   .form-input-field {
-    @apply w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-600 transition-all duration-200 shadow-sm;
+    @apply w-full px-4 py-2.5 bg-white border border-slate-200/80 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all duration-200 shadow-[0_2px_4px_rgba(0,0,0,0.015)];
   }
 
   /* Interactive button states with active press scaling effects */
   .btn-primary {
-    @apply px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-sm hover:shadow transition-all duration-200 active:scale-[0.98] focus:ring-2 focus:ring-green-500/20 outline-none;
+    @apply px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl shadow-sm hover:shadow-[0_4px_12px_rgba(16,185,129,0.15)] transition-all duration-200 active:scale-[0.97] focus:ring-2 focus:ring-emerald-500/20 outline-none cursor-pointer;
   }
 
   .btn-secondary {
-    @apply px-5 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold rounded-xl shadow-sm transition-all duration-200 active:scale-[0.98] focus:ring-2 focus:ring-slate-500/10 outline-none;
+    @apply px-5 py-2.5 bg-white hover:bg-slate-50/80 border border-slate-200 text-slate-600 font-semibold rounded-xl shadow-sm transition-all duration-200 active:scale-[0.97] focus:ring-2 focus:ring-slate-500/10 outline-none cursor-pointer;
   }
 
   /* Clean, professional data table wrappers */
   .table-header-cell {
-    @apply p-4 text-xs font-bold tracking-wider text-slate-500 uppercase bg-slate-50/70 border-b border-slate-100;
+    @apply p-4 text-xs font-bold tracking-wider text-slate-500 uppercase bg-slate-50/60 border-b border-slate-100/80 select-none;
   }
 
   .table-body-cell {
-    @apply p-4 text-sm text-slate-800 border-b border-slate-100/80 align-middle;
+    @apply p-4 text-sm text-slate-800 border-b border-slate-100/60 align-middle;
+  }
+
+  /* Premium Card Designs */
+  .card-premium {
+    @apply bg-white p-6 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.015)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:border-slate-200/60 transition-all duration-300;
+  }
+
+  .card-premium-glow {
+    @apply bg-white p-6 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.015)] hover:shadow-[0_8px_30px_rgba(16,185,129,0.05)] hover:border-emerald-500/15 transition-all duration-300;
   }
 }
 

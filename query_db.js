@@ -82,28 +82,26 @@ async function main() {
     console.log(`Created test user ID: ${userId}`);
   }
 
-  // Insert default dairy items
-  console.log("Inserting default dairy items...");
+  // Insert user-specific dairy items (userId specific)
+  console.log("Inserting user-specific dairy items...");
   const [cowMilkRes] = await connection.query(
-    "INSERT INTO default_dairy_items (name, pricePerUnit, unit) VALUES (?, ?, ?)",
-    ["Cow Milk", 60.00, "Liter"]
+    "INSERT INTO dairy_items (userId, name, pricePerUnit, unit) VALUES (?, ?, ?, ?)",
+    [userId, "Cow Milk", 60.00, "Liter"]
   );
   const cowMilkId = cowMilkRes.insertId;
 
   const [bufMilkRes] = await connection.query(
-    "INSERT INTO default_dairy_items (name, pricePerUnit, unit) VALUES (?, ?, ?)",
-    ["Buffalo Milk", 70.00, "Liter"]
+    "INSERT INTO dairy_items (userId, name, pricePerUnit, unit) VALUES (?, ?, ?, ?)",
+    [userId, "Buffalo Milk", 70.00, "Liter"]
   );
   const bufMilkId = bufMilkRes.insertId;
 
   const [bmRes] = await connection.query(
-    "INSERT INTO default_dairy_items (name, pricePerUnit, unit) VALUES (?, ?, ?)",
-    ["Buttermilk", 30.00, "Packet"]
+    "INSERT INTO dairy_items (userId, name, pricePerUnit, unit) VALUES (?, ?, ?, ?)",
+    [userId, "Buttermilk", 30.00, "Packet"]
   );
   const buttermilkId = bmRes.insertId;
 
-  // Insert admin/custom dairy items (userId specific)
-  console.log("Inserting user-specific dairy items...");
   const [paneerRes] = await connection.query(
     "INSERT INTO dairy_items (userId, name, pricePerUnit, unit) VALUES (?, ?, ?, ?)",
     [userId, "Fresh Paneer", 360.00, "Kg"]
@@ -126,19 +124,19 @@ async function main() {
   console.log("Inserting dummy customers...");
   const [cust1Res] = await connection.query(
     "INSERT INTO customers (userId, name, phone, address, morningQuantity, eveningQuantity, openingBalance, itemId, isDefaultItem, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    [userId, "Rohan Sharma", "9876543210", "Flat 101, Sun City, Indore", 1.5, 0.0, 150.00, cowMilkId, 1, "2026-04-01 00:00:00"]
+    [userId, "Rohan Sharma", "9876543210", "Flat 101, Sun City, Indore", 1.5, 0.0, 150.00, cowMilkId, 0, "2026-04-01 00:00:00"]
   );
   const cust1Id = cust1Res.insertId;
 
   const [cust2Res] = await connection.query(
     "INSERT INTO customers (userId, name, phone, address, morningQuantity, eveningQuantity, openingBalance, itemId, isDefaultItem, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    [userId, "Priya Patel", "9898989898", "House 12, Vijay Nagar, Indore", 1.0, 1.0, 0.00, bufMilkId, 1, "2026-04-01 00:00:00"]
+    [userId, "Priya Patel", "9898989898", "House 12, Vijay Nagar, Indore", 1.0, 1.0, 0.00, bufMilkId, 0, "2026-04-01 00:00:00"]
   );
   const cust2Id = cust2Res.insertId;
 
   const [cust3Res] = await connection.query(
     "INSERT INTO customers (userId, name, phone, address, morningQuantity, eveningQuantity, openingBalance, itemId, isDefaultItem, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    [userId, "Amit Verma", "9123456789", "Sector C, Scheme 54, Indore", 0.0, 2.0, 500.00, cowMilkId, 1, "2026-04-01 00:00:00"]
+    [userId, "Amit Verma", "9123456789", "Sector C, Scheme 54, Indore", 0.0, 2.0, 500.00, cowMilkId, 0, "2026-04-01 00:00:00"]
   );
   const cust3Id = cust3Res.insertId;
 
@@ -149,9 +147,9 @@ async function main() {
   const endDate = new Date("2026-06-22");
   
   const customersList = [
-    { id: cust1Id, morningQuantity: 1.5, eveningQuantity: 0.0, itemId: cowMilkId, isDefaultItem: 1, rate: 60.00 },
-    { id: cust2Id, morningQuantity: 1.0, eveningQuantity: 1.0, itemId: bufMilkId, isDefaultItem: 1, rate: 70.00 },
-    { id: cust3Id, morningQuantity: 0.0, eveningQuantity: 2.0, itemId: cowMilkId, isDefaultItem: 1, rate: 60.00 }
+    { id: cust1Id, morningQuantity: 1.5, eveningQuantity: 0.0, itemId: cowMilkId, isDefaultItem: 0, rate: 60.00 },
+    { id: cust2Id, morningQuantity: 1.0, eveningQuantity: 1.0, itemId: bufMilkId, isDefaultItem: 0, rate: 70.00 },
+    { id: cust3Id, morningQuantity: 0.0, eveningQuantity: 2.0, itemId: cowMilkId, isDefaultItem: 0, rate: 60.00 }
   ];
 
   let currentDate = new Date(startDate);
@@ -202,7 +200,7 @@ async function main() {
   for (const bmDate of buttermilkDates) {
     await connection.query(
       "INSERT INTO extra_item (userId, customerId, itemId, isDefaultItem, date, quantity, totalPrice, pricePerUnit) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [userId, cust3Id, buttermilkId, 1, bmDate, 2.0, 60.00, 30.00]
+      [userId, cust3Id, buttermilkId, 0, bmDate, 2.0, 60.00, 30.00]
     );
   }
 
